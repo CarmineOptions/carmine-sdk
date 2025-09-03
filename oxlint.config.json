@@ -1,0 +1,16 @@
+{
+  "extends": [
+    "recommended"
+  ],
+  "rules": {
+    "no-unused-vars": "error",
+    "no-explicit-any": "warn",
+    "no-console": "warn"
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.d.ts"
+  ]
+}
