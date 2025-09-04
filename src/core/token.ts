@@ -1,4 +1,4 @@
-import { Call } from "starknet";
+import { BigNumberish, Call } from "starknet";
 import {
   AMM_ADDRESS,
   BTC_ADDRESS,
@@ -8,8 +8,9 @@ import {
   USDC_ADDRESS,
 } from "../constants";
 import { Maybe } from "./maybe";
-import { decimalToU256 } from "./conversions";
+import { decimalToU256, u256ToDecimal } from "./conversions";
 import Decimal from "../utils/decimal";
+import { U256 } from "../types/common";
 
 type TokenDescriptor = {
   address: string;
@@ -34,6 +35,24 @@ export class Token {
     this.decimals = decimals;
     this.logo = logo;
     this.factor = new Decimal(10).pow(this.decimals);
+  }
+
+  toHumanReadable(rawSize: BigNumberish | U256): number {
+    if (typeof rawSize === "object") {
+      if (rawSize?.low !== undefined && rawSize?.high !== undefined) {
+        const dec = u256ToDecimal(rawSize);
+        return dec.div(this.factor).toNumber();
+      }
+      // unreachable
+      throw Error("Invalid raw size format");
+    }
+    const dec = new Decimal(rawSize);
+    return dec.div(this.factor).toNumber();
+  }
+
+  toRaw(size: number): U256 {
+    const dec = new Decimal(size).mul(this.factor);
+    return decimalToU256(dec);
   }
 
   approveCalldata(size: number): Call {

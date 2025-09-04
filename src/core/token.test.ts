@@ -79,4 +79,26 @@ describe("Tokens", () => {
       entrypoint: "approve",
     });
   });
+
+  it("raw-human readable conversions", () => {
+    const t = tokenBySymbol("ETH").unwrap();
+
+    const num = 12.345;
+    const u256 = {
+      high: 0n,
+      low: 12345000000000000000n,
+    };
+
+    expect(t.toRaw(num)).toStrictEqual(u256);
+    expect(t.toHumanReadable(u256)).toStrictEqual(num);
+
+    const num_1 = 0.000000000000000001;
+    const u256_1 = {
+      high: 0n,
+      low: 1n,
+    };
+
+    expect(t.toRaw(num_1)).toStrictEqual(u256_1);
+    expect(t.toHumanReadable(u256_1)).toStrictEqual(num_1);
+  });
 });
