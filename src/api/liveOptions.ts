@@ -37,6 +37,7 @@ export const fetchLiveOptions = async (): Promise<
       };
       options.push(new OptionWithPremia(o, premia));
     } catch (error) {
+      console.error(error);
       return None();
     }
   }

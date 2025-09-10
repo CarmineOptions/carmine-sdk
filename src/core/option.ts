@@ -7,7 +7,7 @@ import {
   OptionSide,
   OptionStruct,
 } from "../types/option";
-import { decimalToU256, fixedToNumber, numberToFixed } from "./conversions";
+import { fixedToNumber, numberToFixed } from "./conversions";
 import { LiquidityPool } from "./liquidityPool";
 import { Maybe, None, Some } from "./maybe";
 import { getAmmContract } from "../rpc/contracts";

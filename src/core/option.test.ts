@@ -354,16 +354,12 @@ describe("Option class", () => {
   });
 
   it("trade settle", () => {
-    const premia = 0.123;
-    const slippage = 0.02;
-    const size = 3.21;
-
     const opt = new Option({
       ...TEST_OPTION_DESCRIPTOR,
       optionSide: longSide,
       optionType: callType,
     });
-    expect(opt.tradeSettle(size)).toStrictEqual({
+    expect(opt.tradeSettle(3.21)).toStrictEqual({
       calldata: [
         "0",
         "90389045961176802918400",

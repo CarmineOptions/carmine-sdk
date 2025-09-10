@@ -10,8 +10,8 @@ import {
   liquidityPoolByAddress,
   liquidityPoolBySymbol,
 } from "./liquidityPool";
-import { callType, longSide, putType } from "./common";
-import { tokenByAddress, tokenBySymbol } from "./token";
+import { callType, putType } from "./common";
+import { tokenByAddress } from "./token";
 
 describe("LiquidityPool class", () => {
   it("correctly creates class", () => {
@@ -99,6 +99,12 @@ describe("LiquidityPool class", () => {
     expect(lp.isPut).toBe(true);
     expect(lp.base.symbol).toBe("ETH");
     expect(lp.quote.symbol).toBe("USDC");
+  });
+
+  it("nonexisting lp", () => {
+    const lp = liquidityPoolBySymbol("ETH", "wBTC", 0);
+
+    expect(lp.isNone).toBe(true);
   });
 
   it("call LP", () => {

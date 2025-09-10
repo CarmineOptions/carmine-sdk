@@ -1,4 +1,4 @@
-import { OptionType } from "../types/option";
+import { OptionSide, OptionType } from "../types/option";
 import { TokenAddress } from "../types/common";
 import {
   AMM_ADDRESS,
@@ -24,6 +24,8 @@ import { Maybe } from "./maybe";
 import { Call, Calldata } from "starknet";
 import { callType, putType } from "./common";
 import Decimal from "../utils/decimal";
+import { getAmmContract, getAuxContract } from "../rpc/contracts";
+import { abi } from "../rpc/abi";
 
 const POOL_ID_TO_ADDRESS_MAP: Record<PoolId, string> = {
   "eth-usdc-call": ETH_USDC_CALL_ADDRESS,
@@ -109,6 +111,39 @@ export class LiquidityPool {
   withdrawCall(size: number): Call {
     return this.lpCall(size, "withdraw_liquidity");
   }
+
+  private async fetchNonExpiredOptionsWithPremiaRawData() {
+    if (this.base.symbol === "wBTC") {
+      const aux = getAuxContract().typedv2(abi);
+      return aux.get_all_non_expired_options_with_premia(this.lpAddress);
+    }
+    const amm = getAmmContract().typedv2(abi);
+    return amm.get_all_non_expired_options_with_premia(this.lpAddress);
+  }
+
+  async fetchNonExpiredOptionsWithPremia() {
+    // avoid circular import
+    const { OptionWithPremia } = await import("./option");
+
+    const rawData = await this.fetchNonExpiredOptionsWithPremiaRawData();
+    return rawData.map(
+      ({ option, premia }) =>
+        new OptionWithPremia(
+          {
+            optionSide: Number(option.option_side) as OptionSide,
+            optionType: this.optionType,
+            maturity: Number(option.maturity),
+            strikePrice: {
+              mag: BigInt(option.strike_price.mag),
+              sign: option.strike_price.sign,
+            },
+            baseTokenAddress: this.base.address,
+            quoteTokenAddress: this.quote.address,
+          },
+          { mag: BigInt(premia.mag), sign: premia.sign }
+        )
+    );
+  }
 }
 
 export const allLiquidityPools: LiquidityPool[] = [
@@ -135,7 +170,7 @@ export const liquidityPoolByAddress = (
     allLiquidityPools.find(
       (lp) =>
         BigInt(lp.base.address) === biB &&
-        BigInt(lp.base.address) === biB &&
+        BigInt(lp.quote.address) === biQ &&
         lp.optionType === type
     )
   );

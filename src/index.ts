@@ -1,10 +1,16 @@
 // Types - imports
-import { Token } from "./types/token";
 import { Fixed, OptionDescriptor } from "./types/option";
 
 // Core - imports
 import { fixedToNumber } from "./core/conversions";
 import { Option } from "./core/option";
+import {
+  LiquidityPool,
+  allLiquidityPools,
+  liquidityPoolByAddress,
+  liquidityPoolBySymbol,
+} from "./core/liquidityPool";
+import { Token } from "./core/token";
 
 // Config - imports
 import { initSdk } from "./config";
@@ -12,11 +18,15 @@ import { initSdk } from "./config";
 // Types - exports
 export { type OptionDescriptor };
 export { type Fixed };
-export { type Token };
 
 // Core - exports
-export { Option };
-export { fixedToNumber };
+export { Option, Token, LiquidityPool };
+export {
+  fixedToNumber,
+  allLiquidityPools,
+  liquidityPoolByAddress,
+  liquidityPoolBySymbol,
+};
 
 // Config - exports
 export { initSdk as initCarmineSdk };
