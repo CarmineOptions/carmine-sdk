@@ -45,3 +45,11 @@ export const u256ToDecimal = ({ low, high }: U256): Decimal => {
     .mul(base)
     .add(new Decimal(low.toString()));
 };
+
+export const u256ToBigInt = ({ low, high }: U256): bigint => {
+  const base = new Decimal(2).pow(128); // 2^128
+  const dec = new Decimal(high.toString())
+    .mul(base)
+    .add(new Decimal(low.toString()));
+  return decimalToBigInt(dec);
+};

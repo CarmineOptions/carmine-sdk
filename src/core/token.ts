@@ -8,7 +8,7 @@ import {
   USDC_ADDRESS,
 } from "../constants";
 import { Maybe } from "./maybe";
-import { decimalToU256, u256ToDecimal } from "./conversions";
+import { decimalToBigInt, decimalToU256, u256ToDecimal } from "./conversions";
 import Decimal from "../utils/decimal";
 import { U256 } from "../types/common";
 
@@ -53,6 +53,11 @@ export class Token {
   toRaw(size: number): U256 {
     const dec = new Decimal(size).mul(this.factor);
     return decimalToU256(dec);
+  }
+
+  toRawBigInt(size: number): bigint {
+    const dec = new Decimal(size).mul(this.factor);
+    return decimalToBigInt(dec);
   }
 
   approveCalldata(size: number): Call {

@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { OptionDescriptor } from "../types/option";
 import { Option } from "./option";
 import { ETH_ADDRESS, USDC_ADDRESS } from "../constants";
+import { getAmmContract } from "../rpc/contracts";
 
 const TEST_OPTION_DESCRIPTOR: OptionDescriptor = {
   optionSide: 1,
@@ -17,7 +18,27 @@ const TEST_OPTION_DESCRIPTOR: OptionDescriptor = {
 
 const MOCK_TIMESTAMP = 1735686000;
 
+const MOCK_FIXED_0 = {
+  mag: 9476871643369720057n,
+  sign: false,
+};
+
+const MOCK_FIXED_1 = {
+  mag: 9761177792670811658n,
+  sign: false,
+};
+
+vi.mock("../rpc/contracts", () => {
+  return {
+    getAmmContract: vi.fn(),
+  };
+});
+
 describe("Option class", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
   it("correctly creates class from descriptor", () => {
     const optionClass = new Option(TEST_OPTION_DESCRIPTOR);
 
@@ -126,16 +147,39 @@ describe("Option class", () => {
     ]);
   });
 
-  it("option calldata", () => {
+  it("option struct", () => {
     const optionClass = new Option(TEST_OPTION_DESCRIPTOR);
-    expect(optionClass.optCalldata).toStrictEqual([
-      TEST_OPTION_DESCRIPTOR.optionSide.toString(),
-      TEST_OPTION_DESCRIPTOR.maturity.toString(),
-      TEST_OPTION_DESCRIPTOR.strikePrice.mag.toString(),
-      TEST_OPTION_DESCRIPTOR.strikePrice.sign ? "1" : "0",
-      TEST_OPTION_DESCRIPTOR.quoteTokenAddress,
-      TEST_OPTION_DESCRIPTOR.baseTokenAddress,
-      TEST_OPTION_DESCRIPTOR.optionType.toString(),
-    ]);
+    expect(optionClass.optStruct).toStrictEqual({
+      option_side: TEST_OPTION_DESCRIPTOR.optionSide,
+      option_type: TEST_OPTION_DESCRIPTOR.optionType,
+      maturity: TEST_OPTION_DESCRIPTOR.maturity,
+      strike_price: TEST_OPTION_DESCRIPTOR.strikePrice,
+      base_token_address: TEST_OPTION_DESCRIPTOR.baseTokenAddress,
+      quote_token_address: TEST_OPTION_DESCRIPTOR.quoteTokenAddress,
+    });
+  });
+
+  it("retrieves correct premia", async () => {
+    const mockAmm = {
+      typedv2: () => ({
+        get_total_premia: vi.fn().mockResolvedValue({
+          0: MOCK_FIXED_0,
+          1: MOCK_FIXED_1,
+        }),
+      }),
+    };
+
+    // @ts-expect-error mocking imported function
+    getAmmContract.mockReturnValue(mockAmm);
+
+    const option = new Option(TEST_OPTION_DESCRIPTOR);
+
+    const result = await option.getPremiaRaw(1.23, false);
+
+    expect(result.isSome).toBe(true);
+    expect(result.unwrap()).toEqual({
+      withoutFees: MOCK_FIXED_0,
+      withFees: MOCK_FIXED_1,
+    });
   });
 });

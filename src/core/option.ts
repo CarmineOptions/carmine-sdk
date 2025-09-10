@@ -1,8 +1,17 @@
 import { Calldata } from "starknet";
-import { Fixed, Maturity, OptionDescriptor, OptionSide } from "../types/option";
-import Decimal from "../utils/decimal";
+import {
+  Fixed,
+  Maturity,
+  OptionDescriptor,
+  OptionPremia,
+  OptionSide,
+  OptionStruct,
+} from "../types/option";
 import { fixedToNumber, numberToFixed } from "./conversions";
 import { LiquidityPool } from "./liquidityPool";
+import { Maybe, None, Some } from "./maybe";
+import { getAmmContract } from "../rpc/contracts";
+import { abi } from "../rpc/abi";
 
 export class Option extends LiquidityPool {
   public readonly optionSide: OptionSide;
@@ -18,11 +27,8 @@ export class Option extends LiquidityPool {
     this.strikePrice = fixedToNumber(this.strikePriceRaw);
   }
 
-  private toRawSize(n: number): string {
-    const base = new Decimal(10).pow(new Decimal(this.base.decimals));
-    const v = new Decimal(n).mul(base);
-
-    return v.toString();
+  private toRawSize(n: number): bigint {
+    return this.base.toRawBigInt(n);
   }
   get isLong(): boolean {
     return this.optionSide === 0;
@@ -30,17 +36,17 @@ export class Option extends LiquidityPool {
   get isShort(): boolean {
     return this.optionSide === 1;
   }
-  get optCalldata(): Calldata {
-    return [
-      this.optionSide.toString(),
-      this.maturity.toString(),
-      this.strikePriceRaw.mag.toString(10),
-      "0", // Fixed sign - always positiove
-      this.quote.address,
-      this.base.address,
-      this.optionType.toString(),
-    ];
+  get optStruct(): OptionStruct {
+    return {
+      option_side: this.optionSide,
+      maturity: this.maturity,
+      strike_price: this.strikePriceRaw,
+      quote_token_address: this.quote.address,
+      base_token_address: this.base.address,
+      option_type: this.optionType,
+    };
   }
+
   tradeSettleCalldata(size: number): Calldata {
     return [
       this.optionType.toString(),
@@ -48,7 +54,7 @@ export class Option extends LiquidityPool {
       "0", // Fixed sign - always positiove
       this.maturity.toString(),
       this.optionSide.toString(),
-      this.toRawSize(size),
+      this.toRawSize(size).toString(),
       this.quote.address,
       this.base.address,
     ];
@@ -68,6 +74,49 @@ export class Option extends LiquidityPool {
       "0", // Fixed sign - always positive
       deadline.toString(),
     ];
+  }
+  async getPremiaRaw(
+    size: number,
+    isClosing: boolean
+  ): Promise<Maybe<OptionPremia>> {
+    const amm = getAmmContract().typedv2(abi);
+    const rawSize = this.toRawSize(size);
+    const res = await amm
+      .get_total_premia(this.optStruct, rawSize, isClosing)
+      .catch(() => null);
+
+    if (res === null) {
+      return None();
+    }
+
+    // response is [Fixed without fees, Fixed with fees]
+    const withoutFees: Fixed = res[0] as Fixed;
+    const withFees: Fixed = res[1] as Fixed;
+
+    return Some({ withFees, withoutFees });
+  }
+  async getPremia(size: number, isClosing: boolean): Promise<Maybe<number>> {
+    const rawPremiaMaybe = await this.getPremiaRaw(size, isClosing);
+
+    if (rawPremiaMaybe.isNone) {
+      return None();
+    }
+
+    const rawPremia = rawPremiaMaybe.unwrap();
+    return Some(fixedToNumber(rawPremia.withFees));
+  }
+  async getPremiaWithoutFees(
+    size: number,
+    isClosing: boolean
+  ): Promise<Maybe<number>> {
+    const rawPremiaMaybe = await this.getPremiaRaw(size, isClosing);
+
+    if (rawPremiaMaybe.isNone) {
+      return None();
+    }
+
+    const rawPremia = rawPremiaMaybe.unwrap();
+    return Some(fixedToNumber(rawPremia.withoutFees));
   }
 }
 

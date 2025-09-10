@@ -16,3 +16,15 @@ export type OptionDescriptor = {
   baseTokenAddress: TokenAddress;
   quoteTokenAddress: TokenAddress;
 };
+export type OptionPremia = {
+  withoutFees: Fixed;
+  withFees: Fixed;
+};
+export interface OptionStruct {
+  base_token_address: string;
+  maturity: number;
+  option_side: number;
+  option_type: number;
+  quote_token_address: string;
+  strike_price: Fixed;
+}
