@@ -12,6 +12,7 @@ import { LiquidityPool } from "./liquidityPool";
 import { Maybe, None, Some } from "./maybe";
 import { getAmmContract } from "../rpc/contracts";
 import { abi } from "../rpc/abi";
+import Decimal from "../utils/decimal";
 
 export class Option extends LiquidityPool {
   public readonly optionSide: OptionSide;
@@ -47,6 +48,25 @@ export class Option extends LiquidityPool {
     };
   }
 
+  addSlippageToPremia(
+    premia: number,
+    slippage: number,
+    isClosing: boolean
+  ): number {
+    if (slippage > 0.6 || slippage < 0) {
+      throw Error("Out of bounds slippage");
+    }
+
+    const premiaDec = new Decimal(premia);
+
+    // opening Long or closing Short
+    if (this.isLong !== isClosing) {
+      return premiaDec.mul(1 + slippage).toNumber();
+    }
+
+    // opening Short or closing Long
+    return premiaDec.mul(1 - slippage).toNumber();
+  }
   tradeSettleCalldata(size: number): Calldata {
     return [
       this.optionType.toString(),
@@ -62,7 +82,7 @@ export class Option extends LiquidityPool {
   tradeCalldata(
     size: number,
     premiaLimit: number,
-    deadlineLimit = 3600
+    deadlineLimit: number
   ): Calldata {
     const tsNow = Math.round(new Date().getTime() / 1000);
     const deadline = tsNow + deadlineLimit;

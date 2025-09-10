@@ -3,10 +3,11 @@ import { OptionDescriptor } from "../types/option";
 import { Option } from "./option";
 import { ETH_ADDRESS, USDC_ADDRESS } from "../constants";
 import { getAmmContract } from "../rpc/contracts";
+import { callType, longSide, shortSide } from "./common";
 
 const TEST_OPTION_DESCRIPTOR: OptionDescriptor = {
-  optionSide: 1,
-  optionType: 0,
+  optionSide: shortSide,
+  optionType: callType,
   maturity: 1760054399,
   strikePrice: {
     mag: 90389045961176802918400n,
@@ -181,5 +182,34 @@ describe("Option class", () => {
       withoutFees: MOCK_FIXED_0,
       withFees: MOCK_FIXED_1,
     });
+  });
+
+  it("premia with slippage", () => {
+    // long call
+    const opt = new Option({ ...TEST_OPTION_DESCRIPTOR, optionSide: longSide });
+    const premia = 0.123;
+    const slippage = 0.02;
+
+    expect(opt.addSlippageToPremia(premia, 0.02, false)).toBe(
+      premia * (1 + slippage)
+    );
+    expect(opt.addSlippageToPremia(premia, 0.02, true)).toBe(
+      premia * (1 - slippage)
+    );
+    expect(() => opt.addSlippageToPremia(premia, 0.9, false)).toThrow(
+      "Out of bounds slippage"
+    );
+    expect(() => opt.addSlippageToPremia(premia, -0.001, false)).toThrow(
+      "Out of bounds slippage"
+    );
+
+    // short call
+    const opt2 = new Option(TEST_OPTION_DESCRIPTOR);
+    expect(opt2.addSlippageToPremia(premia, 0.02, false)).toBe(
+      premia * (1 - slippage)
+    );
+    expect(opt2.addSlippageToPremia(premia, 0.02, true)).toBe(
+      premia * (1 + slippage)
+    );
   });
 });
