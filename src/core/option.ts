@@ -1,4 +1,4 @@
-import { Calldata } from "starknet";
+import { Call, Calldata } from "starknet";
 import {
   Fixed,
   Maturity,
@@ -7,12 +7,15 @@ import {
   OptionSide,
   OptionStruct,
 } from "../types/option";
-import { fixedToNumber, numberToFixed } from "./conversions";
+import { decimalToU256, fixedToNumber, numberToFixed } from "./conversions";
 import { LiquidityPool } from "./liquidityPool";
 import { Maybe, None, Some } from "./maybe";
 import { getAmmContract } from "../rpc/contracts";
 import { abi } from "../rpc/abi";
 import Decimal from "../utils/decimal";
+import { U256 } from "../types/common";
+import { longSide, shortSide } from "./common";
+import { AMM_ADDRESS } from "../constants";
 
 export class Option extends LiquidityPool {
   public readonly optionSide: OptionSide;
@@ -32,10 +35,10 @@ export class Option extends LiquidityPool {
     return this.base.toRawBigInt(n);
   }
   get isLong(): boolean {
-    return this.optionSide === 0;
+    return this.optionSide === longSide;
   }
   get isShort(): boolean {
-    return this.optionSide === 1;
+    return this.optionSide === shortSide;
   }
   get optStruct(): OptionStruct {
     return {
@@ -67,6 +70,41 @@ export class Option extends LiquidityPool {
     // opening Short or closing Long
     return premiaDec.mul(1 - slippage).toNumber();
   }
+  toApprove(
+    size: number,
+    premia: number,
+    slippage: number,
+    isClosing: boolean
+  ): U256 {
+    const premiaWithSlippage = this.addSlippageToPremia(
+      premia,
+      slippage,
+      isClosing
+    );
+
+    if (this.isLong) {
+      // Long Call and Long Put, approve premia with slippage
+      return this.underlying.toRaw(premiaWithSlippage);
+    }
+    if (this.isCall) {
+      // Short Call, approve locked capital minus premia with slippage
+      return this.underlying.toRaw(size - premiaWithSlippage);
+    }
+
+    // Short Put - locked capital minus premia with slippage
+    // locked capital is size * strike price
+    return this.underlying.toRaw(size * this.strikePrice - premiaWithSlippage);
+  }
+  approveCall(
+    size: number,
+    premia: number,
+    slippage: number,
+    isClosing: boolean
+  ): Call {
+    const approveSize = this.toApprove(size, premia, slippage, isClosing);
+
+    return this.underlying.tokenApproveCallRaw(approveSize);
+  }
   tradeSettleCalldata(size: number): Calldata {
     return [
       this.optionType.toString(),
@@ -94,6 +132,53 @@ export class Option extends LiquidityPool {
       "0", // Fixed sign - always positive
       deadline.toString(),
     ];
+  }
+  tradeOpen(
+    size: number,
+    premia: number,
+    slippage: number,
+    deadlineLimit = 300
+  ): Call[] {
+    const isClosing = false;
+    const premiaWithSlippage = this.addSlippageToPremia(
+      premia,
+      slippage,
+      isClosing
+    );
+    const approve = this.approveCall(size, premia, slippage, isClosing);
+    const trade = {
+      entrypoint: "trade_open",
+      contractAddress: AMM_ADDRESS,
+      calldata: this.tradeCalldata(size, premiaWithSlippage, deadlineLimit),
+    };
+    return [approve, trade];
+  }
+  tradeClose(
+    size: number,
+    premia: number,
+    slippage: number,
+    deadlineLimit = 300
+  ): Call[] {
+    const isClosing = true;
+    const premiaWithSlippage = this.addSlippageToPremia(
+      premia,
+      slippage,
+      isClosing
+    );
+    const approve = this.approveCall(size, premia, slippage, isClosing);
+    const trade = {
+      entrypoint: "trade_close",
+      contractAddress: AMM_ADDRESS,
+      calldata: this.tradeCalldata(size, premiaWithSlippage, deadlineLimit),
+    };
+    return [approve, trade];
+  }
+  tradeSettle(size: number): Call {
+    return {
+      entrypoint: "trade_settle",
+      contractAddress: AMM_ADDRESS,
+      calldata: this.tradeSettleCalldata(size),
+    };
   }
   async getPremiaRaw(
     size: number,

@@ -3,7 +3,7 @@ import { OptionDescriptor } from "../types/option";
 import { Option } from "./option";
 import { ETH_ADDRESS, USDC_ADDRESS } from "../constants";
 import { getAmmContract } from "../rpc/contracts";
-import { callType, longSide, shortSide } from "./common";
+import { callType, longSide, putType, shortSide } from "./common";
 
 const TEST_OPTION_DESCRIPTOR: OptionDescriptor = {
   optionSide: shortSide,
@@ -211,5 +211,172 @@ describe("Option class", () => {
     expect(opt2.addSlippageToPremia(premia, 0.02, true)).toBe(
       premia * (1 + slippage)
     );
+  });
+
+  it("to approve", () => {
+    const premia = 0.123;
+    const slippage = 0.02;
+    const size = 3.21;
+
+    // long call
+    const longCall = new Option({
+      ...TEST_OPTION_DESCRIPTOR,
+      optionSide: longSide,
+      optionType: callType,
+    });
+    const expectedLongCall = longCall.base.toRaw(premia * (1 + slippage));
+    expect(
+      longCall.toApprove(size, premia, slippage, false),
+      "Long Call"
+    ).toStrictEqual(expectedLongCall);
+
+    // short call
+    const shortCall = new Option({
+      ...TEST_OPTION_DESCRIPTOR,
+      optionSide: shortSide,
+      optionType: callType,
+    });
+    const expectedShortCall = shortCall.base.toRaw(
+      size - premia * (1 - slippage)
+    );
+    expect(
+      shortCall.toApprove(size, premia, slippage, false),
+      "Short Call"
+    ).toStrictEqual(expectedShortCall);
+
+    // long put
+    const longPut = new Option({
+      ...TEST_OPTION_DESCRIPTOR,
+      optionSide: longSide,
+      optionType: putType,
+    });
+    const expectedLongPut = longPut.quote.toRaw(premia * (1 + slippage));
+    expect(longPut.toApprove(size, premia, slippage, false)).toStrictEqual(
+      expectedLongPut
+    );
+
+    // short put
+    const shortPut = new Option({
+      ...TEST_OPTION_DESCRIPTOR,
+      optionSide: shortSide,
+      optionType: putType,
+    });
+    const expectedShortPut = shortPut.quote.toRaw(
+      size * shortPut.strikePrice - premia * (1 - slippage)
+    );
+    expect(shortPut.toApprove(size, premia, slippage, false)).toStrictEqual(
+      expectedShortPut
+    );
+  });
+
+  it("trade open", () => {
+    const premia = 0.123;
+    const slippage = 0.02;
+    const size = 3.21;
+
+    const opt = new Option({
+      ...TEST_OPTION_DESCRIPTOR,
+      optionSide: longSide,
+      optionType: callType,
+    });
+    expect(opt.tradeOpen(size, premia, slippage)).toStrictEqual([
+      {
+        calldata: [
+          "0x47472e6755afc57ada9550b6a3ac93129cc4b5f98f51c73e0644d129fd208d9",
+          "125460000000000000",
+          "0",
+        ],
+        contractAddress:
+          "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+        entrypoint: "approve",
+      },
+      {
+        calldata: [
+          "0",
+          "90389045961176802918400",
+          "0",
+          "1760054399",
+          "0",
+          "3210000000000000000",
+          "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+          "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+          "2314328511487600346",
+          "0",
+          "1735686300",
+        ],
+        contractAddress:
+          "0x47472e6755afc57ada9550b6a3ac93129cc4b5f98f51c73e0644d129fd208d9",
+        entrypoint: "trade_open",
+      },
+    ]);
+  });
+
+  it("trade close", () => {
+    const premia = 0.123;
+    const slippage = 0.02;
+    const size = 3.21;
+
+    const opt = new Option({
+      ...TEST_OPTION_DESCRIPTOR,
+      optionSide: longSide,
+      optionType: callType,
+    });
+    expect(opt.tradeClose(size, premia, slippage)).toStrictEqual([
+      {
+        calldata: [
+          "0x47472e6755afc57ada9550b6a3ac93129cc4b5f98f51c73e0644d129fd208d9",
+          "120540000000000000",
+          "0",
+        ],
+        contractAddress:
+          "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+        entrypoint: "approve",
+      },
+      {
+        calldata: [
+          "0",
+          "90389045961176802918400",
+          "0",
+          "1760054399",
+          "0",
+          "3210000000000000000",
+          "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+          "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+          "2223570530644949352",
+          "0",
+          "1735686300",
+        ],
+        contractAddress:
+          "0x47472e6755afc57ada9550b6a3ac93129cc4b5f98f51c73e0644d129fd208d9",
+        entrypoint: "trade_close",
+      },
+    ]);
+  });
+
+  it("trade settle", () => {
+    const premia = 0.123;
+    const slippage = 0.02;
+    const size = 3.21;
+
+    const opt = new Option({
+      ...TEST_OPTION_DESCRIPTOR,
+      optionSide: longSide,
+      optionType: callType,
+    });
+    expect(opt.tradeSettle(size)).toStrictEqual({
+      calldata: [
+        "0",
+        "90389045961176802918400",
+        "0",
+        "1760054399",
+        "0",
+        "3210000000000000000",
+        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+        "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+      ],
+      contractAddress:
+        "0x47472e6755afc57ada9550b6a3ac93129cc4b5f98f51c73e0644d129fd208d9",
+      entrypoint: "trade_settle",
+    });
   });
 });

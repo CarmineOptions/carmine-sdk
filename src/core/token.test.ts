@@ -47,7 +47,7 @@ describe("Tokens", () => {
   it("ETH approve", () => {
     const t = tokenBySymbol("ETH").unwrap();
 
-    const call = t.approveCalldata(1.23);
+    const call = t.tokenApproveCall(1.23);
 
     expect(call).toStrictEqual({
       calldata: [AMM_ADDRESS, "1230000000000000000", "0"],
@@ -59,7 +59,7 @@ describe("Tokens", () => {
   it("USDC approve", () => {
     const t = tokenBySymbol("USDC").unwrap();
 
-    const call = t.approveCalldata(1.23);
+    const call = t.tokenApproveCall(1.23);
 
     expect(call).toStrictEqual({
       calldata: [AMM_ADDRESS, "1230000", "0"],
@@ -71,7 +71,7 @@ describe("Tokens", () => {
   it("BTC approve", () => {
     const t = tokenBySymbol("wBTC").unwrap();
 
-    const call = t.approveCalldata(1.23);
+    const call = t.tokenApproveCall(1.23);
 
     expect(call).toStrictEqual({
       calldata: [AMM_ADDRESS, "123000000", "0"],

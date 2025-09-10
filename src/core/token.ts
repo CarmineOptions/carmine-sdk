@@ -60,12 +60,19 @@ export class Token {
     return decimalToBigInt(dec);
   }
 
-  approveCalldata(size: number): Call {
+  tokenApproveCall(size: number): Call {
     const { low, high } = decimalToU256(new Decimal(size).mul(this.factor));
     return {
       contractAddress: this.address,
       entrypoint: "approve",
       calldata: [AMM_ADDRESS, low.toString(), high.toString()],
+    };
+  }
+  tokenApproveCallRaw(size: U256): Call {
+    return {
+      contractAddress: this.address,
+      entrypoint: "approve",
+      calldata: [AMM_ADDRESS, size.low.toString(), size.high.toString()],
     };
   }
 }
