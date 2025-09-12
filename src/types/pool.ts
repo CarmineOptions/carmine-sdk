@@ -1,11 +1,3 @@
-import { Token } from "./token";
-
-export type Pool = {
-  base: Token;
-  quote: Token;
-  address: string;
-};
-
 export type PoolId =
   | "eth-usdc-call"
   | "eth-usdc-put"
@@ -17,3 +9,10 @@ export type PoolId =
   | "strk-usdc-put"
   | "ekubo-usdc-call"
   | "ekubo-usdc-put";
+
+export type PoolStatus = {
+  unlocked: number;
+  locked: number;
+  position: number;
+  tvl: number;
+};

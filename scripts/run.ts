@@ -5,9 +5,8 @@ initSdk();
 
 async function run() {
   const lp = liquidityPoolBySymbol("STRK", "USDC", 0).unwrap();
-  const opts = await lp.fetchNonExpiredOptionsWithPremia();
-
-  console.log(opts);
+  const status = await lp.fetchPoolStatus();
+  console.log(lp.poolId, status);
 }
 
 run();

@@ -64,7 +64,7 @@ describe("LiquidityPool class", () => {
       USDC_ADDRESS,
       callType
     ).unwrap();
-    const call = lp.withdrawCall(5);
+    const call = lp.withdraw(5);
     const expectedSize = 5 * 10 ** 18;
 
     expect(call).toStrictEqual({

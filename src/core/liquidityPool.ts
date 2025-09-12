@@ -1,4 +1,4 @@
-import { OptionSide, OptionType } from "../types/option";
+import { Fixed, OptionSide, OptionType } from "../types/option";
 import { TokenAddress } from "../types/common";
 import {
   AMM_ADDRESS,
@@ -18,7 +18,7 @@ import {
   STRK_USDC_PUT_ADDRESS,
   USDC_ADDRESS,
 } from "../constants";
-import { PoolId } from "../types/pool";
+import { PoolId, PoolStatus } from "../types/pool";
 import { Token, tokenByAddress } from "./token";
 import { Maybe } from "./maybe";
 import { Call, Calldata } from "starknet";
@@ -26,6 +26,7 @@ import { callType, putType } from "./common";
 import Decimal from "../utils/decimal";
 import { getAmmContract, getAuxContract } from "../rpc/contracts";
 import { abi } from "../rpc/abi";
+import { fixedToNumber } from "./conversions";
 
 const POOL_ID_TO_ADDRESS_MAP: Record<PoolId, string> = {
   "eth-usdc-call": ETH_USDC_CALL_ADDRESS,
@@ -108,7 +109,13 @@ export class LiquidityPool {
     return this.lpCall(size, "deposit_liquidity");
   }
 
-  withdrawCall(size: number): Call {
+  deposit(size: number): Call[] {
+    const approve = this.underlying.tokenApproveCall(size);
+
+    return [approve, this.lpCall(size, "deposit_liquidity")];
+  }
+
+  withdraw(size: number): Call {
     return this.lpCall(size, "withdraw_liquidity");
   }
 
@@ -143,6 +150,45 @@ export class LiquidityPool {
           { mag: BigInt(premia.mag), sign: premia.sign }
         )
     );
+  }
+
+  async fetchUnlockedCapital(): Promise<number> {
+    const amm = getAmmContract().typedv2(abi);
+    const res = (await amm.get_unlocked_capital(this.lpAddress)) as bigint;
+    const humanReadable = this.underlying.toHumanReadable(res);
+    return humanReadable;
+  }
+
+  async fetchLockedCapital(): Promise<number> {
+    const amm = getAmmContract().typedv2(abi);
+    const res = (await amm.get_pool_locked_capital(this.lpAddress)) as bigint;
+    const humanReadable = this.underlying.toHumanReadable(res);
+    return humanReadable;
+  }
+
+  async fetchPoolPosition(): Promise<number> {
+    const amm = getAmmContract().typedv2(abi);
+    const res = (await amm.get_value_of_pool_position(this.lpAddress)) as Fixed;
+    const humanReadable = fixedToNumber(res);
+    return humanReadable;
+  }
+
+  async fetchPoolTvl(): Promise<number> {
+    const promises = [this.fetchUnlockedCapital(), this.fetchPoolPosition()];
+    const res = await Promise.all(promises);
+    return res[0] + res[1];
+  }
+
+  async fetchPoolStatus(): Promise<PoolStatus> {
+    const promises = [
+      this.fetchUnlockedCapital(),
+      this.fetchLockedCapital(),
+      this.fetchPoolPosition(),
+    ];
+    const res = await Promise.all(promises);
+    const [unlocked, locked, position] = res;
+    const tvl = unlocked + position;
+    return { unlocked, locked, position, tvl };
   }
 }
 
