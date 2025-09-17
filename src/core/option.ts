@@ -11,7 +11,6 @@ import { fixedToNumber, numberToFixed } from "./conversions";
 import { LiquidityPool } from "./liquidityPool";
 import { Maybe, None, Some } from "./maybe";
 import { getAmmContract } from "../rpc/contracts";
-import { abi } from "../rpc/abi";
 import Decimal from "../utils/decimal";
 import { U256 } from "../types/common";
 import { longSide, shortSide } from "./common";
@@ -184,7 +183,7 @@ export class Option extends LiquidityPool {
     size: number,
     isClosing: boolean
   ): Promise<Maybe<OptionPremia>> {
-    const amm = getAmmContract().typedv2(abi);
+    const amm = getAmmContract();
     const rawSize = this.toRawSize(size);
     const res = await amm
       .get_total_premia(this.optStruct, rawSize, isClosing)

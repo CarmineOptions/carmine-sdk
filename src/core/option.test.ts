@@ -162,11 +162,9 @@ describe("Option class", () => {
 
   it("retrieves correct premia", async () => {
     const mockAmm = {
-      typedv2: () => ({
-        get_total_premia: vi.fn().mockResolvedValue({
-          0: MOCK_FIXED_0,
-          1: MOCK_FIXED_1,
-        }),
+      get_total_premia: vi.fn().mockResolvedValue({
+        0: MOCK_FIXED_0,
+        1: MOCK_FIXED_1,
       }),
     };
 

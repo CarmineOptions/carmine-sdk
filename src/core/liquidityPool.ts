@@ -25,7 +25,6 @@ import { Call, Calldata } from "starknet";
 import { callType, putType } from "./common";
 import Decimal from "../utils/decimal";
 import { getAmmContract, getAuxContract } from "../rpc/contracts";
-import { abi } from "../rpc/abi";
 import { fixedToNumber } from "./conversions";
 
 const POOL_ID_TO_ADDRESS_MAP: Record<PoolId, string> = {
@@ -121,10 +120,10 @@ export class LiquidityPool {
 
   private async fetchNonExpiredOptionsWithPremiaRawData() {
     if (this.base.symbol === "wBTC") {
-      const aux = getAuxContract().typedv2(abi);
+      const aux = getAuxContract();
       return aux.get_all_non_expired_options_with_premia(this.lpAddress);
     }
-    const amm = getAmmContract().typedv2(abi);
+    const amm = getAmmContract();
     return amm.get_all_non_expired_options_with_premia(this.lpAddress);
   }
 
@@ -153,21 +152,21 @@ export class LiquidityPool {
   }
 
   async fetchUnlockedCapital(): Promise<number> {
-    const amm = getAmmContract().typedv2(abi);
+    const amm = getAmmContract();
     const res = (await amm.get_unlocked_capital(this.lpAddress)) as bigint;
     const humanReadable = this.underlying.toHumanReadable(res);
     return humanReadable;
   }
 
   async fetchLockedCapital(): Promise<number> {
-    const amm = getAmmContract().typedv2(abi);
+    const amm = getAmmContract();
     const res = (await amm.get_pool_locked_capital(this.lpAddress)) as bigint;
     const humanReadable = this.underlying.toHumanReadable(res);
     return humanReadable;
   }
 
   async fetchPoolPosition(): Promise<number> {
-    const amm = getAmmContract().typedv2(abi);
+    const amm = getAmmContract();
     const res = (await amm.get_value_of_pool_position(this.lpAddress)) as Fixed;
     const humanReadable = fixedToNumber(res);
     return humanReadable;
