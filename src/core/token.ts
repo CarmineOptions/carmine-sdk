@@ -1,4 +1,10 @@
-import { BigNumberish, Call } from "starknet";
+import {
+  BigNumberish,
+  Call,
+  Contract,
+  defaultProvider,
+  TypedContractV2,
+} from "starknet";
 import {
   AMM_ADDRESS,
   BTC_ADDRESS,
@@ -11,6 +17,8 @@ import { Maybe } from "./maybe";
 import { decimalToBigInt, decimalToU256, u256ToDecimal } from "./conversions";
 import Decimal from "../utils/decimal";
 import { U256 } from "../types/common";
+import { erc20Abi } from "../rpc/erc20Abi";
+import { getProvider } from "../rpc/provider";
 
 type TokenDescriptor = {
   address: string;
@@ -27,6 +35,7 @@ export class Token {
   public readonly decimals: number;
   public readonly logo: string;
   public readonly factor: Decimal;
+  private contract?: TypedContractV2<typeof erc20Abi>;
 
   constructor({ address, name, symbol, decimals, logo }: TokenDescriptor) {
     this.address = address;
@@ -35,6 +44,18 @@ export class Token {
     this.decimals = decimals;
     this.logo = logo;
     this.factor = new Decimal(10).pow(this.decimals);
+  }
+
+  private getContract(): TypedContractV2<typeof erc20Abi> {
+    if (!this.contract) {
+      // Lazily initialize to avoid requiring SDK config at module load time.
+      this.contract = new Contract({
+        abi: erc20Abi,
+        address: this.address,
+        providerOrAccount: getProvider(),
+      }).typedv2(erc20Abi);
+    }
+    return this.contract;
   }
 
   toHumanReadable(rawSize: BigNumberish | U256): number {
@@ -68,12 +89,19 @@ export class Token {
       calldata: [AMM_ADDRESS, low.toString(), high.toString()],
     };
   }
+
   tokenApproveCallRaw(size: U256): Call {
     return {
       contractAddress: this.address,
       entrypoint: "approve",
       calldata: [AMM_ADDRESS, size.low.toString(), size.high.toString()],
     };
+  }
+
+  async fetchBalance(userAddress: string): Promise<number> {
+    const res = (await this.getContract().balance_of(userAddress)) as bigint;
+
+    return this.toHumanReadable(res);
   }
 }
 

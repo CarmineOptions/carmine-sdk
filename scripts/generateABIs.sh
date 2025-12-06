@@ -25,4 +25,9 @@ echo "Governance ABI generated"
 echo "$governance_abi" > src/rpc/governanceAbi.ts
 echo "Governance ABI stored"
 
+erc20_abi=$(pnpm tsx scripts/generateErc20ABI.ts)
+echo "ERC20 ABI generated"
+echo "$erc20_abi" > src/rpc/erc20Abi.ts
+echo "ERC20 ABI stored"
+
 echo "Done!"

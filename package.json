@@ -33,6 +33,6 @@
   },
   "dependencies": {
     "decimal.js": "^10.6.0",
-    "starknet": "^7.6.4"
+    "starknet": "^8.9"
   }
 }

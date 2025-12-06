@@ -1,5 +1,5 @@
 import { Contract, TypedContractV2 } from "starknet";
-import { AMM_ADDRESS, AUX_ADDRESS } from "../constants";
+import { AMM_ADDRESS, AUX_ADDRESS, GOVERNANCE_ADDRESS } from "../constants";
 import { getProvider } from "./provider";
 import { ammAbi } from "./ammAbi";
 import { governanceAbi } from "./governanceAbi";
@@ -14,7 +14,11 @@ export const getAmmContract = () => {
     return ammContract;
   }
   const provider = getProvider();
-  ammContract = new Contract(ammAbi, AMM_ADDRESS, provider).typedv2(ammAbi);
+  ammContract = new Contract({
+    abi: ammAbi,
+    address: AMM_ADDRESS,
+    providerOrAccount: provider,
+  }).typedv2(ammAbi);
 
   return ammContract;
 };
@@ -24,7 +28,11 @@ export const getAuxContract = () => {
     return auxContract;
   }
   const provider = getProvider();
-  auxContract = new Contract(ammAbi, AUX_ADDRESS, provider).typedv2(ammAbi);
+  auxContract = new Contract({
+    abi: ammAbi,
+    address: AUX_ADDRESS,
+    providerOrAccount: provider,
+  }).typedv2(ammAbi);
 
   return auxContract;
 };
@@ -34,11 +42,11 @@ export const getGovernanceContract = () => {
     return governanceContract;
   }
   const provider = getProvider();
-  governanceContract = new Contract(
-    governanceAbi,
-    AUX_ADDRESS,
-    provider
-  ).typedv2(governanceAbi);
+  governanceContract = new Contract({
+    abi: governanceAbi,
+    address: GOVERNANCE_ADDRESS,
+    providerOrAccount: provider,
+  }).typedv2(governanceAbi);
 
   return governanceContract;
 };
