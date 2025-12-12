@@ -1,6 +1,6 @@
-import { initSdk } from "../src/config";
-import { GOVERNANCE_ADDRESS } from "../src/constants";
-import { getProvider } from "../src/rpc/provider";
+import { initSdk } from "../src/core/config";
+import { GOVERNANCE_ADDRESS } from "../src/core/constants";
+import { getProvider } from "../src/core/provider";
 
 initSdk();
 

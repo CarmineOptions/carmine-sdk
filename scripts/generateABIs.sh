@@ -17,17 +17,22 @@ echo "Generating ABIs..."
 
 amm_abi=$(pnpm tsx scripts/generateAmmABI.ts)
 echo "AMM ABI generated"
-echo "$amm_abi" > src/rpc/ammAbi.ts
+echo "$amm_abi" > src/core/ammAbi.ts
 echo "AMM ABI stored"
+
+aux_abi=$(pnpm tsx scripts/generateAuxABI.ts)
+echo "Aux ABI generated"
+echo "$aux_abi" > src/core/auxAbi.ts
+echo "Aux ABI stored"
 
 governance_abi=$(pnpm tsx scripts/generateGovernanceABI.ts)
 echo "Governance ABI generated"
-echo "$governance_abi" > src/rpc/governanceAbi.ts
+echo "$governance_abi" > src/governance/governanceAbi.ts
 echo "Governance ABI stored"
 
 erc20_abi=$(pnpm tsx scripts/generateErc20ABI.ts)
 echo "ERC20 ABI generated"
-echo "$erc20_abi" > src/rpc/erc20Abi.ts
+echo "$erc20_abi" > src/core/erc20Abi.ts
 echo "ERC20 ABI stored"
 
 echo "Done!"

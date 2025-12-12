@@ -1,5 +1,5 @@
 import { RpcProvider } from "starknet";
-import { getConfig } from "../config";
+import { getConfig } from "./config";
 
 let provider: RpcProvider | undefined = undefined;
 

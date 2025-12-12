@@ -1,10 +1,4 @@
-import {
-  BigNumberish,
-  Call,
-  Contract,
-  defaultProvider,
-  TypedContractV2,
-} from "starknet";
+import { BigNumberish, Call, Contract, TypedContractV2 } from "starknet";
 import {
   AMM_ADDRESS,
   BTC_ADDRESS,
@@ -12,13 +6,13 @@ import {
   ETH_ADDRESS,
   STRK_ADDRESS,
   USDC_ADDRESS,
-} from "../constants";
+} from "./constants";
 import { Maybe } from "./maybe";
 import { decimalToBigInt, decimalToU256, u256ToDecimal } from "./conversions";
-import Decimal from "../utils/decimal";
-import { U256 } from "../types/common";
-import { erc20Abi } from "../rpc/erc20Abi";
-import { getProvider } from "../rpc/provider";
+import Decimal from "./decimal";
+import { U256 } from "./types";
+import { erc20Abi } from "./erc20Abi";
+import { getProvider } from "./provider";
 
 type TokenDescriptor = {
   address: string;

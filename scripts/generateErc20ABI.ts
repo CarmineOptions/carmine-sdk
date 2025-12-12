@@ -1,6 +1,6 @@
-import { initSdk } from "../src/config";
-import { ETH_ADDRESS } from "../src/constants";
-import { getProvider } from "../src/rpc/provider";
+import { ETH_ADDRESS } from "starknet";
+import { initSdk } from "../src/core/config";
+import { getProvider } from "../src/core/provider";
 
 initSdk();
 

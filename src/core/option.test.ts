@@ -1,20 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { OptionDescriptor } from "../types/option";
 import { Option } from "./option";
-import { ETH_ADDRESS, USDC_ADDRESS } from "../constants";
-import { getAmmContract } from "../rpc/contracts";
-import { callType, longSide, putType, shortSide } from "./common";
+import { ETH_ADDRESS, USDC_ADDRESS } from "./constants";
+import { getAmmContract } from "./contracts";
+import {
+  callType,
+  longSide,
+  putType,
+  shortSide,
+  OptionDescriptor,
+} from "./types";
 
 const TEST_OPTION_DESCRIPTOR: OptionDescriptor = {
-  optionSide: shortSide,
-  optionType: callType,
+  option_side: shortSide,
+  option_type: callType,
   maturity: 1760054399,
-  strikePrice: {
+  strike_price: {
     mag: 90389045961176802918400n,
     sign: false,
   },
-  baseTokenAddress: ETH_ADDRESS,
-  quoteTokenAddress: USDC_ADDRESS,
+  base_token_address: ETH_ADDRESS,
+  quote_token_address: USDC_ADDRESS,
 };
 
 const MOCK_TIMESTAMP = 1735686000;
@@ -45,12 +50,12 @@ describe("Option class", () => {
 
     expect(optionClass.strikePrice).toBe(4900);
     expect(optionClass.maturity).toBe(TEST_OPTION_DESCRIPTOR.maturity);
-    expect(optionClass.optionSide).toBe(TEST_OPTION_DESCRIPTOR.optionSide);
-    expect(optionClass.optionType).toBe(TEST_OPTION_DESCRIPTOR.optionType);
+    expect(optionClass.optionSide).toBe(TEST_OPTION_DESCRIPTOR.option_side);
+    expect(optionClass.optionType).toBe(TEST_OPTION_DESCRIPTOR.option_type);
     expect(optionClass.base.symbol).toBe("ETH");
     expect(optionClass.quote.symbol).toBe("USDC");
-    expect(optionClass.strikePriceRaw).toEqual(
-      TEST_OPTION_DESCRIPTOR.strikePrice
+    expect(optionClass.strikePrice.mag).toEqual(
+      TEST_OPTION_DESCRIPTOR.strike_price.mag
     );
     expect(optionClass.isCall).toBe(true);
     expect(optionClass.isPut).toBe(false);
@@ -61,8 +66,8 @@ describe("Option class", () => {
   it("long call", () => {
     const optionClass = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: 0,
-      optionType: 0,
+      option_side: 0,
+      option_type: 0,
     });
 
     expect(optionClass.isCall).toBe(true);
@@ -74,8 +79,8 @@ describe("Option class", () => {
   it("short call", () => {
     const optionClass = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: 1,
-      optionType: 0,
+      option_side: 1,
+      option_type: 0,
     });
 
     expect(optionClass.isCall).toBe(true);
@@ -87,8 +92,8 @@ describe("Option class", () => {
   it("long put", () => {
     const optionClass = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: 0,
-      optionType: 1,
+      option_side: 0,
+      option_type: 1,
     });
 
     expect(optionClass.isCall).toBe(false);
@@ -100,8 +105,8 @@ describe("Option class", () => {
   it("short put", () => {
     const optionClass = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: 1,
-      optionType: 1,
+      option_side: 1,
+      option_type: 1,
     });
 
     expect(optionClass.isCall).toBe(false);
@@ -114,14 +119,14 @@ describe("Option class", () => {
     const optionClass = new Option(TEST_OPTION_DESCRIPTOR);
     const calldata = optionClass.tradeSettleCalldata(1);
     expect(calldata).toStrictEqual([
-      TEST_OPTION_DESCRIPTOR.optionType.toString(),
-      TEST_OPTION_DESCRIPTOR.strikePrice.mag.toString(),
-      TEST_OPTION_DESCRIPTOR.strikePrice.sign ? "1" : "0",
+      TEST_OPTION_DESCRIPTOR.option_type.toString(),
+      TEST_OPTION_DESCRIPTOR.strike_price.mag.toString(),
+      TEST_OPTION_DESCRIPTOR.strike_price.sign ? "1" : "0",
       TEST_OPTION_DESCRIPTOR.maturity.toString(),
-      TEST_OPTION_DESCRIPTOR.optionSide.toString(),
+      TEST_OPTION_DESCRIPTOR.option_side.toString(),
       "1000000000000000000",
-      TEST_OPTION_DESCRIPTOR.quoteTokenAddress,
-      TEST_OPTION_DESCRIPTOR.baseTokenAddress,
+      TEST_OPTION_DESCRIPTOR.quote_token_address,
+      TEST_OPTION_DESCRIPTOR.base_token_address,
     ]);
   });
 
@@ -134,14 +139,14 @@ describe("Option class", () => {
     const deadline = 300; // 5 mins
     const calldata = optionClass.tradeCalldata(1.54321, 0.0123, deadline);
     expect(calldata).toStrictEqual([
-      TEST_OPTION_DESCRIPTOR.optionType.toString(),
-      TEST_OPTION_DESCRIPTOR.strikePrice.mag.toString(),
-      TEST_OPTION_DESCRIPTOR.strikePrice.sign ? "1" : "0",
+      TEST_OPTION_DESCRIPTOR.option_type.toString(),
+      TEST_OPTION_DESCRIPTOR.strike_price.mag.toString(),
+      TEST_OPTION_DESCRIPTOR.strike_price.sign ? "1" : "0",
       TEST_OPTION_DESCRIPTOR.maturity.toString(),
-      TEST_OPTION_DESCRIPTOR.optionSide.toString(),
+      TEST_OPTION_DESCRIPTOR.option_side.toString(),
       "1543210000000000000",
-      TEST_OPTION_DESCRIPTOR.quoteTokenAddress,
-      TEST_OPTION_DESCRIPTOR.baseTokenAddress,
+      TEST_OPTION_DESCRIPTOR.quote_token_address,
+      TEST_OPTION_DESCRIPTOR.base_token_address,
       "226894952106627485",
       "0",
       (MOCK_TIMESTAMP + deadline).toString(),
@@ -150,13 +155,13 @@ describe("Option class", () => {
 
   it("option struct", () => {
     const optionClass = new Option(TEST_OPTION_DESCRIPTOR);
-    expect(optionClass.optStruct).toStrictEqual({
-      option_side: TEST_OPTION_DESCRIPTOR.optionSide,
-      option_type: TEST_OPTION_DESCRIPTOR.optionType,
+    expect(optionClass.descriptor).toStrictEqual({
+      option_side: TEST_OPTION_DESCRIPTOR.option_side,
+      option_type: TEST_OPTION_DESCRIPTOR.option_type,
       maturity: TEST_OPTION_DESCRIPTOR.maturity,
-      strike_price: TEST_OPTION_DESCRIPTOR.strikePrice,
-      base_token_address: TEST_OPTION_DESCRIPTOR.baseTokenAddress,
-      quote_token_address: TEST_OPTION_DESCRIPTOR.quoteTokenAddress,
+      strike_price: TEST_OPTION_DESCRIPTOR.strike_price,
+      base_token_address: TEST_OPTION_DESCRIPTOR.base_token_address,
+      quote_token_address: TEST_OPTION_DESCRIPTOR.quote_token_address,
     });
   });
 
@@ -173,10 +178,9 @@ describe("Option class", () => {
 
     const option = new Option(TEST_OPTION_DESCRIPTOR);
 
-    const result = await option.getPremiaRaw(1.23, false);
+    const result = await option.getPremia(1.23, false);
 
-    expect(result.isSome).toBe(true);
-    expect(result.unwrap()).toEqual({
+    expect(result).toEqual({
       withoutFees: MOCK_FIXED_0,
       withFees: MOCK_FIXED_1,
     });
@@ -184,7 +188,10 @@ describe("Option class", () => {
 
   it("premia with slippage", () => {
     // long call
-    const opt = new Option({ ...TEST_OPTION_DESCRIPTOR, optionSide: longSide });
+    const opt = new Option({
+      ...TEST_OPTION_DESCRIPTOR,
+      option_side: longSide,
+    });
     const premia = 0.123;
     const slippage = 0.02;
 
@@ -219,8 +226,8 @@ describe("Option class", () => {
     // long call
     const longCall = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: longSide,
-      optionType: callType,
+      option_side: longSide,
+      option_type: callType,
     });
     const expectedLongCall = longCall.base.toRaw(premia * (1 + slippage));
     expect(
@@ -231,8 +238,8 @@ describe("Option class", () => {
     // short call
     const shortCall = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: shortSide,
-      optionType: callType,
+      option_side: shortSide,
+      option_type: callType,
     });
     const expectedShortCall = shortCall.base.toRaw(
       size - premia * (1 - slippage)
@@ -245,8 +252,8 @@ describe("Option class", () => {
     // long put
     const longPut = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: longSide,
-      optionType: putType,
+      option_side: longSide,
+      option_type: putType,
     });
     const expectedLongPut = longPut.quote.toRaw(premia * (1 + slippage));
     expect(longPut.toApprove(size, premia, slippage, false)).toStrictEqual(
@@ -256,11 +263,11 @@ describe("Option class", () => {
     // short put
     const shortPut = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: shortSide,
-      optionType: putType,
+      option_side: shortSide,
+      option_type: putType,
     });
     const expectedShortPut = shortPut.quote.toRaw(
-      size * shortPut.strikePrice - premia * (1 - slippage)
+      size * shortPut.strikePrice.val - premia * (1 - slippage)
     );
     expect(shortPut.toApprove(size, premia, slippage, false)).toStrictEqual(
       expectedShortPut
@@ -274,8 +281,8 @@ describe("Option class", () => {
 
     const opt = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: longSide,
-      optionType: callType,
+      option_side: longSide,
+      option_type: callType,
     });
     expect(opt.tradeOpen(size, premia, slippage)).toStrictEqual([
       {
@@ -316,8 +323,8 @@ describe("Option class", () => {
 
     const opt = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: longSide,
-      optionType: callType,
+      option_side: longSide,
+      option_type: callType,
     });
     expect(opt.tradeClose(size, premia, slippage)).toStrictEqual([
       {
@@ -354,8 +361,8 @@ describe("Option class", () => {
   it("trade settle", () => {
     const opt = new Option({
       ...TEST_OPTION_DESCRIPTOR,
-      optionSide: longSide,
-      optionType: callType,
+      option_side: longSide,
+      option_type: callType,
     });
     expect(opt.tradeSettle(3.21)).toStrictEqual({
       calldata: [

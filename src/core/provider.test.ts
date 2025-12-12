@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { initCarmineSdk } from "..";
 import { getProvider, resetProvider } from "./provider";
-import { resetConfig } from "../config";
-import { RPC_URL_DEFAULT } from "../constants";
+import { RPC_URL_DEFAULT } from "./constants";
+import { initSdk, resetConfig } from "./config";
 
 describe("starknet RPC provider", () => {
   beforeEach(() => {
@@ -11,7 +10,7 @@ describe("starknet RPC provider", () => {
   });
 
   it("provider with default RPC URL", async () => {
-    initCarmineSdk();
+    initSdk();
 
     const provider = getProvider();
 
@@ -20,7 +19,7 @@ describe("starknet RPC provider", () => {
 
   it("provider with custom RPC URL", async () => {
     const customRpcUrl = "https://custom.rpc";
-    initCarmineSdk({ rpcUrl: customRpcUrl });
+    initSdk({ rpcUrl: customRpcUrl });
 
     const provider = getProvider();
 
@@ -29,7 +28,7 @@ describe("starknet RPC provider", () => {
 
   it("cached provider", async () => {
     const customRpcUrl = "https://custom.rpc";
-    initCarmineSdk({ rpcUrl: customRpcUrl });
+    initSdk({ rpcUrl: customRpcUrl });
 
     // creates and stores to cache
     const provider = getProvider();

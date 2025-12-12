@@ -5,29 +5,31 @@ import {
   OptionDescriptor,
   OptionPremia,
   OptionSide,
-  OptionStruct,
-} from "../types/option";
-import { fixedToNumber, numberToFixed } from "./conversions";
+  OptionType,
+  U256,
+} from "./types";
+import { numberToFixed } from "./conversions";
 import { LiquidityPool } from "./liquidityPool";
-import { Maybe, None, Some } from "./maybe";
-import { getAmmContract } from "../rpc/contracts";
-import Decimal from "../utils/decimal";
-import { U256 } from "../types/common";
-import { longSide, shortSide } from "./common";
-import { AMM_ADDRESS } from "../constants";
+import Decimal from "./decimal";
+import { longSide, shortSide } from "./types";
+import { AMM_ADDRESS } from "./constants";
+import { Cubit } from "./Cubit";
+import { CarmineAmm } from "./CarmineAmm";
 
 export class Option extends LiquidityPool {
   public readonly optionSide: OptionSide;
   public readonly maturity: Maturity;
-  public readonly strikePrice: number;
-  public readonly strikePriceRaw: Fixed;
+  public readonly strikePrice: Cubit;
 
   constructor(o: OptionDescriptor) {
-    super(o.baseTokenAddress, o.quoteTokenAddress, o.optionType);
-    this.optionSide = o.optionSide;
-    this.maturity = o.maturity;
-    this.strikePriceRaw = o.strikePrice;
-    this.strikePrice = fixedToNumber(this.strikePriceRaw);
+    super(
+      o.base_token_address,
+      o.quote_token_address,
+      Number(o.option_type) as OptionType
+    );
+    this.optionSide = Number(o.option_side) as OptionSide;
+    this.maturity = Number(o.maturity);
+    this.strikePrice = new Cubit(o.strike_price);
   }
 
   private toRawSize(n: number): bigint {
@@ -39,15 +41,20 @@ export class Option extends LiquidityPool {
   get isShort(): boolean {
     return this.optionSide === shortSide;
   }
-  get optStruct(): OptionStruct {
+  get descriptor(): OptionDescriptor {
     return {
       option_side: this.optionSide,
       maturity: this.maturity,
-      strike_price: this.strikePriceRaw,
+      strike_price: this.strikePrice.asObject,
       quote_token_address: this.quote.address,
       base_token_address: this.base.address,
       option_type: this.optionType,
     };
+  }
+  get optionId(): string {
+    return `${this.poolId}-${this.optionSide === 0 ? "long" : "short"}-${
+      this.maturity
+    }-${this.strikePrice.val}`;
   }
 
   addSlippageToPremia(
@@ -92,7 +99,9 @@ export class Option extends LiquidityPool {
 
     // Short Put - locked capital minus premia with slippage
     // locked capital is size * strike price
-    return this.underlying.toRaw(size * this.strikePrice - premiaWithSlippage);
+    return this.underlying.toRaw(
+      size * this.strikePrice.val - premiaWithSlippage
+    );
   }
   approveCall(
     size: number,
@@ -107,8 +116,7 @@ export class Option extends LiquidityPool {
   tradeSettleCalldata(size: number): Calldata {
     return [
       this.optionType.toString(),
-      this.strikePriceRaw.mag.toString(10),
-      "0", // Fixed sign - always positiove
+      ...this.strikePrice.asArray,
       this.maturity.toString(),
       this.optionSide.toString(),
       this.toRawSize(size).toString(),
@@ -179,58 +187,28 @@ export class Option extends LiquidityPool {
       calldata: this.tradeSettleCalldata(size),
     };
   }
-  async getPremiaRaw(
-    size: number,
-    isClosing: boolean
-  ): Promise<Maybe<OptionPremia>> {
-    const amm = getAmmContract();
-    const rawSize = this.toRawSize(size);
-    const res = await amm
-      .get_total_premia(this.optStruct, rawSize, isClosing)
-      .catch(() => null);
-
-    if (res === null) {
-      return None();
-    }
-
-    // response is [Fixed without fees, Fixed with fees]
-    const withoutFees: Fixed = res[0] as Fixed;
-    const withFees: Fixed = res[1] as Fixed;
-
-    return Some({ withFees, withoutFees });
-  }
-  async getPremia(size: number, isClosing: boolean): Promise<Maybe<number>> {
-    const rawPremiaMaybe = await this.getPremiaRaw(size, isClosing);
-
-    if (rawPremiaMaybe.isNone) {
-      return None();
-    }
-
-    const rawPremia = rawPremiaMaybe.unwrap();
-    return Some(fixedToNumber(rawPremia.withFees));
+  async getPremia(size: number, isClosing: boolean): Promise<OptionPremia> {
+    return await CarmineAmm.getTotalPremia(
+      this.descriptor,
+      this.toRawSize(size),
+      isClosing
+    );
   }
   async getPremiaWithoutFees(
     size: number,
     isClosing: boolean
-  ): Promise<Maybe<number>> {
-    const rawPremiaMaybe = await this.getPremiaRaw(size, isClosing);
+  ): Promise<number> {
+    const { withoutFees } = await this.getPremia(size, isClosing);
 
-    if (rawPremiaMaybe.isNone) {
-      return None();
-    }
-
-    const rawPremia = rawPremiaMaybe.unwrap();
-    return Some(fixedToNumber(rawPremia.withoutFees));
+    return withoutFees.val;
   }
 }
 
 export class OptionWithPremia extends Option {
-  public readonly premia: number;
-  public readonly premiaRaw: Fixed;
+  public readonly premia: Cubit;
 
   constructor(o: OptionDescriptor, premia: Fixed) {
     super(o);
-    this.premiaRaw = premia;
-    this.premia = fixedToNumber(premia);
+    this.premia = new Cubit(premia);
   }
 }

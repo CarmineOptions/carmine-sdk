@@ -1,21 +1,13 @@
 import { Abi } from "starknet";
-import { initSdk } from "../src/config";
-import { AMM_ADDRESS, AUX_ADDRESS } from "../src/constants";
-import { getProvider } from "../src/rpc/provider";
+import { initSdk } from "../src/core/config";
+import { getProvider } from "../src/core/provider";
+import { AMM_ADDRESS, AUX_ADDRESS } from "../src/core/constants";
 
 initSdk();
 
 async function generateAmmABI() {
   const provider = getProvider();
-  const { abi: ammAbi } = await provider.getClassAt(AMM_ADDRESS);
-  const { abi: auxAbi } = await provider.getClassAt(AUX_ADDRESS);
-
-  const abi: Abi = [
-    ...ammAbi,
-    ...auxAbi.filter(
-      (b) => !ammAbi.some((a) => a.type === b.type && a.name === b.name)
-    ),
-  ];
+  const { abi } = await provider.getClassAt(AMM_ADDRESS);
 
   // console output is captured into a file
   // just run pnpm generate-abi

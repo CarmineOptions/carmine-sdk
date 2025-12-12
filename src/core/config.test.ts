@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { initSdk, getConfig, resetConfig } from "../src/config";
+import { resetConfig, getConfig, initSdk } from "./config";
 import { API_URL_DEFAULT, RPC_URL_DEFAULT } from "./constants";
 
 describe("SDK config", () => {

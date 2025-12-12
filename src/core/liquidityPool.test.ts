@@ -4,13 +4,13 @@ import {
   BTC_ADDRESS,
   ETH_ADDRESS,
   USDC_ADDRESS,
-} from "../constants";
+} from "./constants";
 import {
   LiquidityPool,
   liquidityPoolByAddress,
   liquidityPoolBySymbol,
 } from "./liquidityPool";
-import { callType, putType } from "./common";
+import { callType, putType } from "./types";
 import { tokenByAddress } from "./token";
 
 describe("LiquidityPool class", () => {

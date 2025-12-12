@@ -1,5 +1,3 @@
-import { Fixed, OptionSide, OptionType } from "../types/option";
-import { TokenAddress } from "../types/common";
 import {
   AMM_ADDRESS,
   BTC_ADDRESS,
@@ -17,15 +15,22 @@ import {
   STRK_USDC_CALL_ADDRESS,
   STRK_USDC_PUT_ADDRESS,
   USDC_ADDRESS,
-} from "../constants";
-import { PoolId, PoolStatus } from "../types/pool";
+} from "./constants";
 import { Token, tokenByAddress } from "./token";
 import { Maybe } from "./maybe";
 import { Call, Calldata } from "starknet";
-import { callType, putType } from "./common";
-import Decimal from "../utils/decimal";
-import { getAmmContract, getAuxContract } from "../rpc/contracts";
+import { callType, putType } from "./types";
+import Decimal from "./decimal";
+import { getAmmContract, getAuxContract } from "./contracts";
 import { fixedToNumber } from "./conversions";
+import {
+  PoolId,
+  OptionType,
+  TokenAddress,
+  OptionSide,
+  Fixed,
+  PoolStatus,
+} from "./types";
 
 const POOL_ID_TO_ADDRESS_MAP: Record<PoolId, string> = {
   "eth-usdc-call": ETH_USDC_CALL_ADDRESS,
@@ -136,15 +141,15 @@ export class LiquidityPool {
       ({ option, premia }) =>
         new OptionWithPremia(
           {
-            optionSide: Number(option.option_side) as OptionSide,
-            optionType: this.optionType,
+            option_side: Number(option.option_side) as OptionSide,
+            option_type: this.optionType,
             maturity: Number(option.maturity),
-            strikePrice: {
+            strike_price: {
               mag: BigInt(option.strike_price.mag),
               sign: option.strike_price.sign,
             },
-            baseTokenAddress: this.base.address,
-            quoteTokenAddress: this.quote.address,
+            base_token_address: this.base.address,
+            quote_token_address: this.quote.address,
           },
           { mag: BigInt(premia.mag), sign: premia.sign }
         )

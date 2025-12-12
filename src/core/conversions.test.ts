@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { decimalToU256, fixedToNumber, u256ToDecimal } from "./conversions";
-import Decimal from "../utils/decimal";
-import { U256 } from "../types/common";
+import Decimal from "./decimal";
+import { U256 } from "./types";
 
 describe("Fixed conversions", () => {
   it("converts positive Fixed", () => {

@@ -1,11 +1,11 @@
-import Decimal from "./utils/decimal";
+import Decimal from "./decimal";
 
 export const MATH_64_BASE = new Decimal(2).pow(new Decimal(64));
 
 export const AMM_ADDRESS =
   "0x47472e6755afc57ada9550b6a3ac93129cc4b5f98f51c73e0644d129fd208d9";
 export const AUX_ADDRESS =
-  "0x03e174d3d7dce00ad5e15299593a28c3defc660c77220867c921611a3aef4149";
+  "0x4580d85b9d19b9412bb982bcb31ecb6ebb4363221e27b349b569f60410f6ef";
 export const GOVERNANCE_ADDRESS =
   "0x1405ab78ab6ec90fba09e6116f373cda53b0ba557789a4578d8c1ec374ba0f";
 export const ETH_ADDRESS =
@@ -44,5 +44,11 @@ export const EKUBO_USDC_CALL_ADDRESS =
 export const EKUBO_USDC_PUT_ADDRESS =
   "0xe12a16c964dc68850c1f6cbea9062c36bed7676265eec7f563c728c53e536f";
 
-export const RPC_URL_DEFAULT = "https://starknet.api.onfinality.io/public";
+// export const RPC_URL_DEFAULT = "https://starknet.api.onfinality.io/public";
+export const RPC_URL_DEFAULT = "http://51.195.57.196:6060";
 export const API_URL_DEFAULT = "https://api.carmine.finance/api";
+
+export const OptionSideLong = 0;
+export const OptionSideShort = 1;
+export const OptionTypeCall = 0;
+export const OptionTypePut = 1;

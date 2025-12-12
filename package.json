@@ -7,15 +7,28 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.ts"
+    },
+    "./core": {
+      "import": "./dist/core/index.mjs",
+      "require": "./dist/core/index.cjs",
+      "types": "./dist/core/index.d.ts"
+    },
+    "./api": {
+      "import": "./dist/api/index.mjs",
+      "require": "./dist/api/index.cjs",
+      "types": "./dist/api/index.d.ts"
+    },
+    "./governance": {
+      "import": "./dist/governance/index.mjs",
+      "require": "./dist/governance/index.cjs",
+      "types": "./dist/governance/index.d.ts"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup src/**/* --dts --format esm,cjs --clean",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,14 +1,39 @@
-export type ApiResponseFail = {
-  status: "bad_request" | "server_error";
-  message: string;
+import { Cubit } from "../core/Cubit";
+
+export type StateResponse = {
+  locked: string;
+  unlocked: string;
+  position: string;
+  balance: string;
+  value: string;
+  timestamp: string;
+  block_number: number;
+  value_week_ago: string;
+  apy_all_time: number;
+  apy_week: number;
+  change_all_time: number;
+  change_week: number;
+  date_week_ago: string;
+  date_genesis: string;
+  underlying_price: string;
 };
 
-export type ApiResponseSuccess<T> = { status: "success"; data: T };
-
-export type ApiResponse<T> = ApiResponseFail | ApiResponseSuccess<T>;
-
-export type ApiConfig = {
-  version: number;
-  network: "mainnet"; // SDK only supports mainnet
-  params: Record<string, string>;
+export type State = {
+  locked: bigint;
+  unlocked: bigint;
+  position: Cubit;
+  balance: bigint;
+  value: bigint;
+  timestamp: Date;
+  block_number: number;
+  value_week_ago: bigint;
+  apy_all_time: number;
+  apy_week: number;
+  change_all_time: number;
+  change_week: number;
+  date_week_ago: Date;
+  date_genesis: Date;
+  underlying_price: bigint;
 };
+
+export type LivePrices = [keyof string, number];

@@ -1,7 +1,6 @@
-import { Fixed } from "../types/option";
-import { MATH_64_BASE } from "../constants";
-import { U256 } from "../types/common";
-import Decimal from "../utils/decimal";
+import { MATH_64_BASE } from "./constants";
+import Decimal from "./decimal";
+import { Fixed, U256 } from "./types";
 
 export const fixedToNumber = (n: Fixed): number => {
   const d = new Decimal(n.mag);

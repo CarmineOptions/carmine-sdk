@@ -1,5 +1,5 @@
-import { API_URL_DEFAULT, RPC_URL_DEFAULT } from "./constants.js";
-import type { SdkConfig } from "./types/config.ts";
+import { API_URL_DEFAULT, RPC_URL_DEFAULT } from "./constants";
+import { SdkConfig } from "./types";
 
 let config: Required<SdkConfig> | undefined;
 

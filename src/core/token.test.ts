@@ -5,7 +5,7 @@ import {
   BTC_ADDRESS,
   ETH_ADDRESS,
   USDC_ADDRESS,
-} from "../constants";
+} from "./constants";
 
 describe("Tokens", () => {
   it("by valid address", () => {
