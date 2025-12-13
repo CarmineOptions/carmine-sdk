@@ -32,9 +32,9 @@ export const BTC_USDC_CALL_ADDRESS =
 export const BTC_USDC_PUT_ADDRESS =
   "0x1bf27366077765c922f342c8de257591d1119ebbcbae7a6c4ff2f50ede4c54c";
 export const ETH_STRK_CALL_ADDRESS =
-  "0x06df66db6a4b321869b3d1808fc702713b6cbb69541d583d4b38e7b1406c09aa";
+  "0x6df66db6a4b321869b3d1808fc702713b6cbb69541d583d4b38e7b1406c09aa";
 export const ETH_STRK_PUT_ADDRESS =
-  "0x04dcd9632353ed56e47be78f66a55a04e2c1303ebcb8ec7ea4c53f4fdf3834ec";
+  "0x4dcd9632353ed56e47be78f66a55a04e2c1303ebcb8ec7ea4c53f4fdf3834ec";
 export const STRK_USDC_CALL_ADDRESS =
   "0x2b629088a1d30019ef18b893cebab236f84a365402fa0df2f51ec6a01506b1d";
 export const STRK_USDC_PUT_ADDRESS =
@@ -46,7 +46,7 @@ export const EKUBO_USDC_PUT_ADDRESS =
 
 // export const RPC_URL_DEFAULT = "https://starknet.api.onfinality.io/public";
 export const RPC_URL_DEFAULT = "http://51.195.57.196:6060";
-export const API_URL_DEFAULT = "https://api.carmine.finance/api";
+export const API_URL_DEFAULT = "https://backend.carmine.finance";
 
 export const OptionSideLong = 0;
 export const OptionSideShort = 1;

@@ -1,3 +1,4 @@
+import { OptionSide } from "../core";
 import { Cubit } from "../core/Cubit";
 
 export type StateResponse = {
@@ -37,3 +38,114 @@ export type State = {
 };
 
 export type LivePrices = [keyof string, number];
+
+export type Pagination = {
+  limit: number;
+  offset: number;
+};
+
+export type PaginatedResponse<T> = {
+  data: T;
+  total: number;
+  has_next: boolean;
+};
+
+export type TradeEventResponse = {
+  block_number: number;
+  caller: string;
+  event_name: string;
+  lp_address: string;
+  maturity: number;
+  option_address: string;
+  option_side: number;
+  strike_price: string;
+  timestamp: string;
+  tx: string;
+  capital: string;
+  tokens: string;
+};
+
+export type TradeEvent = {
+  blockNumber: number;
+  caller: string;
+  eventName: string;
+  lpAddress: string;
+  maturity: number;
+  optionAddress: string;
+  optionSide: OptionSide;
+  strikePrice: Cubit;
+  timestamp: Date;
+  tx: string;
+  capital: number;
+  tokens: number;
+};
+
+export type LiquidityEventResponse = {
+  block_number: number;
+  caller: string;
+  capital: string;
+  event_name: string;
+  lp_address: string;
+  timestamp: string;
+  tokens: string;
+  tx: string;
+};
+
+export type LiquidityEvent = {
+  blockNumber: number;
+  caller: string;
+  capital: number;
+  eventName: string;
+  lpAddress: string;
+  timestamp: Date;
+  tokens: number;
+  tx: string;
+};
+
+export type VoteEventResponse = {
+  block_number: number;
+  opinion: number;
+  prop_id: number;
+  timestamp: string;
+  tx: string;
+  voter: string;
+};
+
+export type VoteEvent = {
+  blockNumber: number;
+  opinion: number;
+  propId: number;
+  timestamp: Date;
+  tx: string;
+  voter: string;
+};
+
+export type UserPointsResponse = {
+  user_address: string;
+  trade_points: number;
+  liquidity_points: number;
+  vote_points: number;
+  referral_points: number;
+  total_points: number;
+  position: number;
+};
+
+export type TopUsersResponse = {
+  top: UserPointsResponse[];
+  user: UserPointsResponse | null;
+};
+
+export type UserPoints = {
+  userAddress: string;
+  tradePoints: number;
+  liquidityPoints: number;
+  votePoints: number;
+  referralPoints: number;
+  totalPoints: number;
+  position: number;
+};
+
+export type TopUsers = {
+  top: UserPoints[];
+  user?: UserPoints;
+};

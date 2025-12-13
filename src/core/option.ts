@@ -212,3 +212,27 @@ export class OptionWithPremia extends Option {
     this.premia = new Cubit(premia);
   }
 }
+
+export class OptionWithUserPosition extends Option {
+  public readonly value: Cubit;
+  public readonly size: U256;
+
+  constructor(o: OptionDescriptor, value: Fixed, size: U256) {
+    super(o);
+    this.value = new Cubit(value);
+    this.size = size;
+  }
+
+  tradeCloseFull(
+    premia: number,
+    slippage: number,
+    deadlineLimit = 300
+  ): Call[] {
+    return this.tradeClose(
+      this.underlying.toHumanReadable(this.size),
+      premia,
+      slippage,
+      deadlineLimit
+    );
+  }
+}

@@ -1,4 +1,19 @@
-import { LivePrices, State } from "./types";
+import {
+  LiquidityEvent,
+  LivePrices,
+  PaginatedResponse,
+  State,
+  TradeEvent,
+  VoteEvent,
+} from "./types";
 import { CarmineApi } from "./CarmineApi";
 
-export { CarmineApi, LivePrices, State };
+export {
+  CarmineApi,
+  LivePrices,
+  State,
+  PaginatedResponse,
+  TradeEvent,
+  LiquidityEvent,
+  VoteEvent,
+};

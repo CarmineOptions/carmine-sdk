@@ -240,3 +240,9 @@ export const liquidityPoolBySymbol = (
     )
   );
 };
+
+export const liquidityPoolByLpAddress = (
+  lpAddress: string
+): Maybe<LiquidityPool> => {
+  return new Maybe(allLiquidityPools.find((lp) => lp.lpAddress === lpAddress));
+};
