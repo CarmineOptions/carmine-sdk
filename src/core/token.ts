@@ -145,3 +145,5 @@ export const tokenByAddress = (a: string): Maybe<Token> => {
 export const tokenBySymbol = (s: string): Maybe<Token> => {
   return new Maybe(TOKENS.find((t) => t.symbol === s));
 };
+
+export const allTokens = TOKENS;

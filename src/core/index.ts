@@ -9,7 +9,7 @@ import {
   liquidityPoolBySymbol,
   liquidityPoolByLpAddress,
 } from "./liquidityPool";
-import { Token } from "./token";
+import { allTokens, Token, tokenByAddress, tokenBySymbol } from "./token";
 import { Option, OptionWithPremia } from "./option";
 import { CarmineAmm } from "./CarmineAmm";
 import {
@@ -57,6 +57,9 @@ export {
   OptionSideShort,
   OptionTypeCall,
   OptionTypePut,
+  tokenByAddress,
+  tokenBySymbol,
+  allTokens,
 };
 
 // constants - exports
