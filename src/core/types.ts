@@ -59,3 +59,20 @@ export type AllNonExpired = {
   option: OptionDescriptor;
   premia: Fixed;
 };
+
+export type PoolInfoResponse = {
+  staked_capital: U256;
+  unlocked_capital: U256;
+  value_of_pool_position: Fixed;
+};
+
+export type UserPoolInfoResponse = {
+  value_of_user_stake: U256;
+  size_of_users_tokens: U256;
+  pool_info: PoolInfoResponse;
+};
+
+export type UserPoolInfo = {
+  valueOfUserStake: number;
+  sizeOfUserTokens: number;
+};

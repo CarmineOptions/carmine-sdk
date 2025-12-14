@@ -26,15 +26,15 @@ export type State = {
   balance: bigint;
   value: bigint;
   timestamp: Date;
-  block_number: number;
-  value_week_ago: bigint;
-  apy_all_time: number;
-  apy_week: number;
-  change_all_time: number;
-  change_week: number;
-  date_week_ago: Date;
-  date_genesis: Date;
-  underlying_price: bigint;
+  blockNumber: number;
+  valueWeekAgo: bigint;
+  apyAllTime: number;
+  apyWeek: number;
+  changeAllTime: number;
+  changeWeek: number;
+  dateWeekAgo: Date;
+  dateGenesis: Date;
+  underlyingPrice: bigint;
 };
 
 export type LivePrices = [keyof string, number];

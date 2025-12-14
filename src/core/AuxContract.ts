@@ -1,9 +1,11 @@
+import { liquidityPoolByLpAddress } from "./liquidityPool";
 import { TypedContractV2, Contract } from "starknet";
 import { auxAbi } from "./auxAbi";
 import { AUX_ADDRESS } from "./constants";
 import { getProvider } from "./provider";
 import { OptionWithPremia } from "./option";
-import { AllNonExpired } from "./types";
+import { AllNonExpired, UserPoolInfo, UserPoolInfoResponse } from "./types";
+import { lpTokensToHumanReadable } from "./utils";
 
 export namespace AuxContract {
   // Lazily created contract instance
@@ -31,5 +33,25 @@ export namespace AuxContract {
     return res.map(
       ({ option, premia }) => new OptionWithPremia(option, premia)
     );
+  }
+
+  export async function getUserPoolInfo(
+    userAddress: string,
+    lpAddress: string
+  ): Promise<UserPoolInfo> {
+    const res = (await contract().get_user_pool_info(
+      userAddress,
+      lpAddress
+    )) as UserPoolInfoResponse;
+
+    const pool = liquidityPoolByLpAddress(lpAddress).unwrap();
+
+    const valueOfUserStake = pool.underlying.toHumanReadable(
+      res.value_of_user_stake
+    );
+    // tokens have always 18 decimals
+    const sizeOfUserTokens = lpTokensToHumanReadable(res.size_of_users_tokens);
+
+    return { valueOfUserStake, sizeOfUserTokens };
   }
 }

@@ -40,4 +40,11 @@ export namespace CarmineAmm {
     const withFees = new Cubit(res[1] as Fixed);
     return { withFees, withoutFees };
   }
+
+  export async function getUserPoolInfo(
+    userAddress: string,
+    lpAddress: string
+  ) {
+    return AuxContract.getUserPoolInfo(userAddress, lpAddress);
+  }
 }

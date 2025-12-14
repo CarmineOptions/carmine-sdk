@@ -3,7 +3,9 @@ import {
   LivePrices,
   PaginatedResponse,
   State,
+  TopUsers,
   TradeEvent,
+  UserPoints,
   VoteEvent,
 } from "./types";
 import { CarmineApi } from "./CarmineApi";
@@ -16,4 +18,6 @@ export {
   TradeEvent,
   LiquidityEvent,
   VoteEvent,
+  TopUsers,
+  UserPoints,
 };
