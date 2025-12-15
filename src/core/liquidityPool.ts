@@ -11,6 +11,7 @@ import {
   ETH_STRK_PUT_ADDRESS,
   ETH_USDC_CALL_ADDRESS,
   ETH_USDC_PUT_ADDRESS,
+  OptionTypeCall,
   STRK_ADDRESS,
   STRK_USDC_CALL_ADDRESS,
   STRK_USDC_PUT_ADDRESS,
@@ -18,8 +19,8 @@ import {
 } from "./constants";
 import { Token, tokenByAddress } from "./token";
 import { Maybe } from "./maybe";
-import { Call, Calldata } from "starknet";
-import { callType, putType } from "./types";
+import { BigNumberish, Call, Calldata } from "starknet";
+import { callType, putType, U256 } from "./types";
 import Decimal from "./decimal";
 import { getAmmContract, getAuxContract } from "./contracts";
 import { fixedToNumber } from "./conversions";
@@ -31,6 +32,7 @@ import {
   Fixed,
   PoolStatus,
 } from "./types";
+import { lpTokensToHumanReadable } from "./utils";
 
 const POOL_ID_TO_ADDRESS_MAP: Record<PoolId, string> = {
   "eth-usdc-call": ETH_USDC_CALL_ADDRESS,
@@ -57,9 +59,25 @@ const getLpAddress = (id: PoolId): Maybe<string> => {
   return new Maybe(POOL_ID_TO_ADDRESS_MAP[id]);
 };
 
-export class LiquidityPool {
+export class TokenPair {
   public readonly base: Token;
   public readonly quote: Token;
+
+  constructor(baseAddress: TokenAddress, quoteAddress: TokenAddress) {
+    this.base = tokenByAddress(baseAddress).unwrap();
+    this.quote = tokenByAddress(quoteAddress).unwrap();
+  }
+
+  get pairId(): string {
+    return `${this.base.symbol}-${this.quote.symbol}`;
+  }
+
+  addType(type: OptionType): LiquidityPool {
+    return new LiquidityPool(this.base.address, this.quote.address, type);
+  }
+}
+
+export class LiquidityPool extends TokenPair {
   public readonly optionType: OptionType;
   public readonly lpAddress: string;
   public readonly poolId: PoolId;
@@ -69,8 +87,7 @@ export class LiquidityPool {
     quoteAddress: TokenAddress,
     type: OptionType
   ) {
-    this.base = tokenByAddress(baseAddress).unwrap();
-    this.quote = tokenByAddress(quoteAddress).unwrap();
+    super(baseAddress, quoteAddress);
     this.optionType = type;
     this.poolId = getPoolId(this.base, this.quote, this.optionType);
     this.lpAddress = getLpAddress(this.poolId).unwrap();
@@ -87,6 +104,9 @@ export class LiquidityPool {
   }
   get factor(): Decimal {
     return new Decimal(10).pow(new Decimal(this.underlying.decimals));
+  }
+  get typeAsText(): string {
+    return this.optionType === OptionTypeCall ? "Call" : "Put";
   }
 
   lpCalldata(size: number): Calldata {
@@ -195,6 +215,45 @@ export class LiquidityPool {
     return { unlocked, locked, position, tvl };
   }
 }
+
+export class UserPoolInfo extends LiquidityPool {
+  public readonly sizeRaw: U256;
+  public readonly size: number;
+  public readonly valueRaw: U256;
+  public readonly value: number;
+  public readonly unlockedRaw: U256;
+  public readonly unlocked: number;
+
+  constructor(
+    baseAddress: TokenAddress,
+    quoteAddress: TokenAddress,
+    type: OptionType,
+    size: U256,
+    value: U256,
+    unlocked: U256
+  ) {
+    super(baseAddress, quoteAddress, type);
+    this.sizeRaw = size;
+    this.valueRaw = value;
+    this.unlockedRaw = unlocked;
+    this.size = lpTokensToHumanReadable(size);
+    this.value = this.underlying.toHumanReadable(value);
+    this.unlocked = this.underlying.toHumanReadable(unlocked);
+  }
+}
+
+export const allTokenPairs: TokenPair[] = [
+  new TokenPair(ETH_ADDRESS, USDC_ADDRESS),
+  new TokenPair(ETH_ADDRESS, USDC_ADDRESS),
+  new TokenPair(BTC_ADDRESS, USDC_ADDRESS),
+  new TokenPair(BTC_ADDRESS, USDC_ADDRESS),
+  new TokenPair(STRK_ADDRESS, USDC_ADDRESS),
+  new TokenPair(STRK_ADDRESS, USDC_ADDRESS),
+  new TokenPair(EKUBO_ADDRESS, USDC_ADDRESS),
+  new TokenPair(EKUBO_ADDRESS, USDC_ADDRESS),
+  new TokenPair(ETH_ADDRESS, STRK_ADDRESS),
+  new TokenPair(ETH_ADDRESS, STRK_ADDRESS),
+];
 
 export const allLiquidityPools: LiquidityPool[] = [
   new LiquidityPool(ETH_ADDRESS, USDC_ADDRESS, 0),

@@ -12,7 +12,7 @@ import { numberToFixed } from "./conversions";
 import { LiquidityPool } from "./liquidityPool";
 import Decimal from "./decimal";
 import { longSide, shortSide } from "./types";
-import { AMM_ADDRESS } from "./constants";
+import { AMM_ADDRESS, OptionSideLong } from "./constants";
 import { Cubit } from "./Cubit";
 import { CarmineAmm } from "./CarmineAmm";
 
@@ -35,6 +35,12 @@ export class Option extends LiquidityPool {
   private toRawSize(n: number): bigint {
     return this.base.toRawBigInt(n);
   }
+  get isFresh(): boolean {
+    return this.maturity * 1000 > new Date().getTime();
+  }
+  get isExpired(): boolean {
+    return !this.isFresh;
+  }
   get isLong(): boolean {
     return this.optionSide === longSide;
   }
@@ -55,6 +61,9 @@ export class Option extends LiquidityPool {
     return `${this.poolId}-${this.optionSide === 0 ? "long" : "short"}-${
       this.maturity
     }-${this.strikePrice.val}`;
+  }
+  get sideAsText(): string {
+    return this.optionSide === OptionSideLong ? "Long" : "Short";
   }
 
   addSlippageToPremia(
@@ -180,13 +189,7 @@ export class Option extends LiquidityPool {
     };
     return [approve, trade];
   }
-  tradeSettle(size: number): Call {
-    return {
-      entrypoint: "trade_settle",
-      contractAddress: AMM_ADDRESS,
-      calldata: this.tradeSettleCalldata(size),
-    };
-  }
+
   async getPremia(size: number, isClosing: boolean): Promise<OptionPremia> {
     return await CarmineAmm.getTotalPremia(
       this.descriptor,
@@ -216,11 +219,21 @@ export class OptionWithPremia extends Option {
 export class OptionWithUserPosition extends Option {
   public readonly value: Cubit;
   public readonly size: U256;
+  public readonly sizeHuman: number;
 
   constructor(o: OptionDescriptor, value: Fixed, size: U256) {
     super(o);
     this.value = new Cubit(value);
     this.size = size;
+    this.sizeHuman = this.underlying.toHumanReadable(size);
+  }
+
+  get isInTheMoney(): boolean {
+    return !!this.value && this.isExpired;
+  }
+
+  get isOutOfTheMoney(): boolean {
+    return !this.value && this.isExpired;
   }
 
   tradeCloseFull(
@@ -234,5 +247,15 @@ export class OptionWithUserPosition extends Option {
       slippage,
       deadlineLimit
     );
+  }
+
+  tradeSettle(): Call {
+    return {
+      entrypoint: "trade_settle",
+      contractAddress: AMM_ADDRESS,
+      calldata: this.tradeSettleCalldata(
+        this.underlying.toHumanReadable(this.size)
+      ),
+    };
   }
 }

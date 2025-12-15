@@ -1,11 +1,17 @@
 import { Contract, TypedContractV2 } from "starknet";
 import { ammAbi } from "./ammAbi";
-import { OptionWithPremia } from "./option";
+import { OptionWithPremia, OptionWithUserPosition } from "./option";
 import { getProvider } from "./provider";
 import { AMM_ADDRESS } from "./constants";
-import { Fixed, OptionDescriptor, OptionPremia } from "./types";
+import {
+  Fixed,
+  OptionDescriptor,
+  OptionPremia,
+  OptionWithUserPositionResponse,
+} from "./types";
 import { Cubit } from "./Cubit";
 import { AuxContract } from "./AuxContract";
+import { allLiquidityPools, UserPoolInfo } from "./liquidityPool";
 
 export namespace CarmineAmm {
   // Lazily created contract instance
@@ -44,7 +50,33 @@ export namespace CarmineAmm {
   export async function getUserPoolInfo(
     userAddress: string,
     lpAddress: string
-  ) {
+  ): Promise<UserPoolInfo> {
     return AuxContract.getUserPoolInfo(userAddress, lpAddress);
+  }
+
+  export async function getUserPoolInfoAllPools(
+    userAddress: string
+  ): Promise<UserPoolInfo[]> {
+    const promises = allLiquidityPools.map(({ lpAddress }) =>
+      AuxContract.getUserPoolInfo(userAddress, lpAddress)
+    );
+    return await Promise.all(promises);
+  }
+
+  export async function getOptionsWithPositionOfUser(
+    userAddress: string
+  ): Promise<OptionWithUserPosition[]> {
+    const res = (await contract().get_option_with_position_of_user(
+      userAddress
+    )) as OptionWithUserPositionResponse[];
+
+    return res.map(
+      (o) =>
+        new OptionWithUserPosition(
+          o.option,
+          o.value_of_position,
+          o.position_size
+        )
+    );
   }
 }

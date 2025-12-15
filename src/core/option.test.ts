@@ -357,27 +357,4 @@ describe("Option class", () => {
       },
     ]);
   });
-
-  it("trade settle", () => {
-    const opt = new Option({
-      ...TEST_OPTION_DESCRIPTOR,
-      option_side: longSide,
-      option_type: callType,
-    });
-    expect(opt.tradeSettle(3.21)).toStrictEqual({
-      calldata: [
-        "0",
-        "90389045961176802918400",
-        "0",
-        "1760054399",
-        "0",
-        "3210000000000000000",
-        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
-        "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-      ],
-      contractAddress:
-        "0x47472e6755afc57ada9550b6a3ac93129cc4b5f98f51c73e0644d129fd208d9",
-      entrypoint: "trade_settle",
-    });
-  });
 });

@@ -5,6 +5,7 @@ import {
   OptionTypePut,
 } from "./constants";
 import { Cubit } from "../core/Cubit";
+import { BigNumberish } from "starknet";
 
 export const callType = 0;
 export const putType = 1;
@@ -72,7 +73,8 @@ export type UserPoolInfoResponse = {
   pool_info: PoolInfoResponse;
 };
 
-export type UserPoolInfo = {
-  valueOfUserStake: number;
-  sizeOfUserTokens: number;
+export type OptionWithUserPositionResponse = {
+  option: OptionDescriptor;
+  position_size: U256;
+  value_of_position: Fixed;
 };

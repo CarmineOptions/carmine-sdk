@@ -1,3 +1,4 @@
+import { lpTokensToHumanReadable } from "./utils";
 import { Cubit } from "./Cubit";
 import { OptionDescriptor, Fixed, OptionSide, OptionType } from "./types";
 import { initSdk } from "./config";
@@ -8,9 +9,12 @@ import {
   liquidityPoolByAddress,
   liquidityPoolBySymbol,
   liquidityPoolByLpAddress,
+  UserPoolInfo,
+  allTokenPairs,
+  TokenPair,
 } from "./liquidityPool";
 import { allTokens, Token, tokenByAddress, tokenBySymbol } from "./token";
-import { Option, OptionWithPremia } from "./option";
+import { Option, OptionWithPremia, OptionWithUserPosition } from "./option";
 import { CarmineAmm } from "./CarmineAmm";
 import {
   BTC_ADDRESS,
@@ -42,11 +46,16 @@ export { type Fixed };
 export {
   Option,
   Token,
+  TokenPair,
   LiquidityPool,
+  UserPoolInfo,
   OptionWithPremia,
+  OptionWithUserPosition,
   CarmineAmm,
   Cubit,
   fixedToNumber,
+  lpTokensToHumanReadable,
+  allTokenPairs,
   allLiquidityPools,
   liquidityPoolByAddress,
   liquidityPoolBySymbol,

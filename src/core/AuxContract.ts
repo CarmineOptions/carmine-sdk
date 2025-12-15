@@ -1,11 +1,12 @@
-import { liquidityPoolByLpAddress } from "./liquidityPool";
+import { liquidityPoolByLpAddress, UserPoolInfo } from "./liquidityPool";
 import { TypedContractV2, Contract } from "starknet";
 import { auxAbi } from "./auxAbi";
 import { AUX_ADDRESS } from "./constants";
 import { getProvider } from "./provider";
 import { OptionWithPremia } from "./option";
-import { AllNonExpired, UserPoolInfo, UserPoolInfoResponse } from "./types";
+import { AllNonExpired, UserPoolInfoResponse } from "./types";
 import { lpTokensToHumanReadable } from "./utils";
+import { Cubit } from "./Cubit";
 
 export namespace AuxContract {
   // Lazily created contract instance
@@ -46,12 +47,13 @@ export namespace AuxContract {
 
     const pool = liquidityPoolByLpAddress(lpAddress).unwrap();
 
-    const valueOfUserStake = pool.underlying.toHumanReadable(
-      res.value_of_user_stake
+    return new UserPoolInfo(
+      pool.base.address,
+      pool.quote.address,
+      pool.optionType,
+      res.size_of_users_tokens,
+      res.value_of_user_stake,
+      res.pool_info.unlocked_capital
     );
-    // tokens have always 18 decimals
-    const sizeOfUserTokens = lpTokensToHumanReadable(res.size_of_users_tokens);
-
-    return { valueOfUserStake, sizeOfUserTokens };
   }
 }
