@@ -218,4 +218,12 @@ export namespace CarmineApi {
 
     return final;
   }
+
+  export async function airdrop(user: string): Promise<string[] | null> {
+    const urlBuilder = new UrlBuilder("/airdrop").setQuery(
+      "user",
+      sanitizeAddress(user)
+    );
+    return await sendRequest<string[] | null>(urlBuilder.url);
+  }
 }
