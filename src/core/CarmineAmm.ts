@@ -70,6 +70,8 @@ export namespace CarmineAmm {
       userAddress
     )) as OptionWithUserPositionResponse[];
 
+    console.log(res);
+
     return res.map(
       (o) =>
         new OptionWithUserPosition(

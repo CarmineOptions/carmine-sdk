@@ -19,7 +19,7 @@ import {
 } from "./constants";
 import { Token, tokenByAddress } from "./token";
 import { Maybe } from "./maybe";
-import { BigNumberish, Call, Calldata } from "starknet";
+import { Call, Calldata } from "starknet";
 import { callType, putType, U256 } from "./types";
 import Decimal from "./decimal";
 import { getAmmContract, getAuxContract } from "./contracts";
