@@ -1,20 +1,23 @@
-import { Call, Calldata } from "starknet";
+import { Call, Calldata, Contract } from "starknet";
 import {
   Fixed,
   Maturity,
   OptionDescriptor,
+  OptionDescriptorWithLpAddress,
   OptionPremia,
   OptionSide,
   OptionType,
   U256,
 } from "./types";
 import { numberToFixed } from "./conversions";
-import { LiquidityPool } from "./liquidityPool";
+import { LiquidityPool, liquidityPoolByLpAddress } from "./liquidityPool";
 import Decimal from "./decimal";
 import { longSide, shortSide } from "./types";
 import { AMM_ADDRESS, OptionSideLong } from "./constants";
 import { Cubit } from "./Cubit";
 import { CarmineAmm } from "./CarmineAmm";
+import { erc20Abi } from "./erc20Abi";
+import { getProvider } from "./provider";
 
 export class Option extends LiquidityPool {
   public readonly optionSide: OptionSide;
@@ -25,7 +28,7 @@ export class Option extends LiquidityPool {
     super(
       o.base_token_address,
       o.quote_token_address,
-      Number(o.option_type) as OptionType
+      Number(o.option_type) as OptionType,
     );
     this.optionSide = Number(o.option_side) as OptionSide;
     this.maturity = Number(o.maturity);
@@ -69,7 +72,7 @@ export class Option extends LiquidityPool {
   addSlippageToPremia(
     premia: number,
     slippage: number,
-    isClosing: boolean
+    isClosing: boolean,
   ): number {
     if (slippage > 0.6 || slippage < 0) {
       throw Error("Out of bounds slippage");
@@ -89,12 +92,12 @@ export class Option extends LiquidityPool {
     size: number,
     premia: number,
     slippage: number,
-    isClosing: boolean
+    isClosing: boolean,
   ): U256 {
     const premiaWithSlippage = this.addSlippageToPremia(
       premia,
       slippage,
-      isClosing
+      isClosing,
     );
 
     if (this.isLong) {
@@ -109,14 +112,14 @@ export class Option extends LiquidityPool {
     // Short Put - locked capital minus premia with slippage
     // locked capital is size * strike price
     return this.underlying.toRaw(
-      size * this.strikePrice.val - premiaWithSlippage
+      size * this.strikePrice.val - premiaWithSlippage,
     );
   }
   approveCall(
     size: number,
     premia: number,
     slippage: number,
-    isClosing: boolean
+    isClosing: boolean,
   ): Call {
     const approveSize = this.toApprove(size, premia, slippage, isClosing);
 
@@ -136,7 +139,7 @@ export class Option extends LiquidityPool {
   tradeCalldata(
     size: number,
     premiaLimit: number,
-    deadlineLimit: number
+    deadlineLimit: number,
   ): Calldata {
     const tsNow = Math.round(new Date().getTime() / 1000);
     const deadline = tsNow + deadlineLimit;
@@ -153,13 +156,13 @@ export class Option extends LiquidityPool {
     size: number,
     premia: number,
     slippage: number,
-    deadlineLimit = 300
+    deadlineLimit = 300,
   ): Call[] {
     const isClosing = false;
     const premiaWithSlippage = this.addSlippageToPremia(
       premia,
       slippage,
-      isClosing
+      isClosing,
     );
     const approve = this.approveCall(size, premia, slippage, isClosing);
     const trade = {
@@ -173,13 +176,13 @@ export class Option extends LiquidityPool {
     size: number,
     premia: number,
     slippage: number,
-    deadlineLimit = 300
+    deadlineLimit = 300,
   ): Call[] {
     const isClosing = true;
     const premiaWithSlippage = this.addSlippageToPremia(
       premia,
       slippage,
-      isClosing
+      isClosing,
     );
     const approve = this.approveCall(size, premia, slippage, isClosing);
     const trade = {
@@ -194,12 +197,12 @@ export class Option extends LiquidityPool {
     return await CarmineAmm.getTotalPremia(
       this.descriptor,
       this.toRawSize(size),
-      isClosing
+      isClosing,
     );
   }
   async getPremiaWithoutFees(
     size: number,
-    isClosing: boolean
+    isClosing: boolean,
   ): Promise<number> {
     const { withoutFees } = await this.getPremia(size, isClosing);
 
@@ -239,13 +242,13 @@ export class OptionWithUserPosition extends Option {
   tradeCloseFull(
     premia: number,
     slippage: number,
-    deadlineLimit = 300
+    deadlineLimit = 300,
   ): Call[] {
     return this.tradeClose(
       this.underlying.toHumanReadable(this.size),
       premia,
       slippage,
-      deadlineLimit
+      deadlineLimit,
     );
   }
 
@@ -254,7 +257,44 @@ export class OptionWithUserPosition extends Option {
       entrypoint: "trade_settle",
       contractAddress: AMM_ADDRESS,
       calldata: this.tradeSettleCalldata(
-        this.underlying.toHumanReadable(this.size)
+        this.underlying.toHumanReadable(this.size),
+      ),
+    };
+  }
+}
+
+export class NonSettledOption extends Option {
+  public readonly optionAddress: string;
+
+  constructor(input: OptionDescriptorWithLpAddress) {
+    const pool = liquidityPoolByLpAddress(input.lp_address).unwrap();
+    const o: OptionDescriptor = {
+      option_side: input.option_side as OptionSide,
+      option_type: pool.optionType,
+      maturity: input.maturity,
+      strike_price: {
+        mag: BigInt(input.strike_price),
+        sign: false,
+      },
+      base_token_address: pool.base.address,
+      quote_token_address: pool.quote.address,
+    };
+    super(o);
+    this.optionAddress = input.option_address;
+  }
+
+  async tradeSettle(user: string): Promise<Call> {
+    const contract = new Contract({
+      abi: erc20Abi,
+      address: this.optionAddress,
+      providerOrAccount: getProvider(),
+    }).typedv2(erc20Abi);
+    const balance = (await contract.balance_of(user)) as bigint;
+    return {
+      entrypoint: "trade_settle",
+      contractAddress: AMM_ADDRESS,
+      calldata: this.tradeSettleCalldata(
+        this.underlying.toHumanReadable(balance),
       ),
     };
   }

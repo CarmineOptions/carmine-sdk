@@ -35,6 +35,13 @@ export type OptionPremia = {
   withoutFees: Cubit;
   withFees: Cubit;
 };
+export type OptionDescriptorWithLpAddress = {
+  lp_address: string;
+  maturity: number;
+  option_address: string;
+  option_side: number;
+  strike_price: string;
+};
 
 export type PoolId =
   | "eth-usdc-call"

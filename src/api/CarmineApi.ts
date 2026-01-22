@@ -20,6 +20,8 @@ import {
 } from "./types";
 import { UrlBuilder } from "./UrlBuilder";
 import { liquidityPoolByLpAddress, OptionSide } from "../core";
+import { OptionDescriptorWithLpAddress } from "../core/types";
+import { NonSettledOption } from "../core/option";
 
 export namespace CarmineApi {
   async function sendRequest<T>(url: string): Promise<T> {
@@ -228,12 +230,16 @@ export namespace CarmineApi {
     return await sendRequest<string[] | null>(urlBuilder.url);
   }
 
-  export async function nonSettledOptions(user: string): Promise<string[]> {
+  export async function nonSettledOptions(
+    user: string,
+  ): Promise<NonSettledOption[]> {
     const urlBuilder = new UrlBuilder("/options/non-settled").setQuery(
       "user",
       sanitizeAddress(user),
     );
-    const res = await sendRequest<DataResponse<string[]>>(urlBuilder.url);
-    return res.data;
+    const res = await sendRequest<
+      DataResponse<OptionDescriptorWithLpAddress[]>
+    >(urlBuilder.url);
+    return res.data.map((o) => new NonSettledOption(o));
   }
 }
