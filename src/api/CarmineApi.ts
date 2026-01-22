@@ -16,6 +16,7 @@ import {
   UserPointsResponse,
   UserPoints,
   TopUsers,
+  DataResponse,
 } from "./types";
 import { UrlBuilder } from "./UrlBuilder";
 import { liquidityPoolByLpAddress, OptionSide } from "../core";
@@ -35,7 +36,7 @@ export namespace CarmineApi {
   export async function poolState(lpAddress: string): Promise<State> {
     const urlBuilder = new UrlBuilder("/state").setQuery(
       "lp_address",
-      sanitizeAddress(lpAddress)
+      sanitizeAddress(lpAddress),
     );
     const res = await sendRequest<StateResponse>(urlBuilder.url);
 
@@ -65,7 +66,7 @@ export namespace CarmineApi {
 
   export async function tradeEvents(
     user: string | undefined,
-    { limit = 20, offset = 0 }: Pagination
+    { limit = 20, offset = 0 }: Pagination,
   ): Promise<PaginatedResponse<TradeEvent[]>> {
     const urlBuilder = new UrlBuilder("/events/trade")
       .setQuery("limit", limit.toString())
@@ -76,7 +77,7 @@ export namespace CarmineApi {
     }
 
     const res = await sendRequest<PaginatedResponse<TradeEventResponse[]>>(
-      urlBuilder.url
+      urlBuilder.url,
     );
 
     const transformed: TradeEvent[] = res.data.map((e) => {
@@ -110,7 +111,7 @@ export namespace CarmineApi {
 
   export async function liquidityEvents(
     user: string | undefined,
-    { limit = 20, offset = 0 }: Pagination
+    { limit = 20, offset = 0 }: Pagination,
   ): Promise<PaginatedResponse<LiquidityEvent[]>> {
     const urlBuilder = new UrlBuilder("/events/liquidity")
       .setQuery("limit", limit.toString())
@@ -121,7 +122,7 @@ export namespace CarmineApi {
     }
 
     const res = await sendRequest<PaginatedResponse<LiquidityEventResponse[]>>(
-      urlBuilder.url
+      urlBuilder.url,
     );
 
     const transformed: LiquidityEvent[] = res.data.map((e) => {
@@ -151,7 +152,7 @@ export namespace CarmineApi {
 
   export async function voteEvents(
     user: string | undefined,
-    { limit = 20, offset = 0 }: Pagination
+    { limit = 20, offset = 0 }: Pagination,
   ): Promise<PaginatedResponse<VoteEvent[]>> {
     const urlBuilder = new UrlBuilder("/events/vote")
       .setQuery("limit", limit.toString())
@@ -162,7 +163,7 @@ export namespace CarmineApi {
     }
 
     const res = await sendRequest<PaginatedResponse<VoteEventResponse[]>>(
-      urlBuilder.url
+      urlBuilder.url,
     );
 
     const transformed: VoteEvent[] = res.data.map((e) => {
@@ -185,7 +186,7 @@ export namespace CarmineApi {
 
   export async function userPoints(
     user: string | undefined,
-    limit?: number
+    limit?: number,
   ): Promise<TopUsers> {
     const urlBuilder = new UrlBuilder("/user-points/total");
     if (limit) {
@@ -222,8 +223,17 @@ export namespace CarmineApi {
   export async function airdrop(user: string): Promise<string[] | null> {
     const urlBuilder = new UrlBuilder("/airdrop").setQuery(
       "user",
-      sanitizeAddress(user)
+      sanitizeAddress(user),
     );
     return await sendRequest<string[] | null>(urlBuilder.url);
+  }
+
+  export async function nonSettledOptions(user: string): Promise<string[]> {
+    const urlBuilder = new UrlBuilder("/options/non-settled").setQuery(
+      "user",
+      sanitizeAddress(user),
+    );
+    const res = await sendRequest<DataResponse<string[]>>(urlBuilder.url);
+    return res.data;
   }
 }

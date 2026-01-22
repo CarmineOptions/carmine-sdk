@@ -5,7 +5,6 @@ import {
   OptionTypePut,
 } from "./constants";
 import { Cubit } from "../core/Cubit";
-import { BigNumberish } from "starknet";
 
 export const callType = 0;
 export const putType = 1;

@@ -30,7 +30,7 @@ export namespace CarmineAmm {
   }
 
   export async function getAllNonExpiredOptionsWithPremia(
-    lpAddress: string
+    lpAddress: string,
   ): Promise<OptionWithPremia[]> {
     // AuxContract fetches premia for smaller size for BTC to make premia more sensible
     return await AuxContract.getAllNonExpiredOptionsWithPremia(lpAddress);
@@ -39,7 +39,7 @@ export namespace CarmineAmm {
   export async function getTotalPremia(
     option: OptionDescriptor,
     size: bigint,
-    isClosing: boolean
+    isClosing: boolean,
   ): Promise<OptionPremia> {
     const res = await contract().get_total_premia(option, size, isClosing);
     const withoutFees = new Cubit(res[0] as Fixed);
@@ -49,36 +49,34 @@ export namespace CarmineAmm {
 
   export async function getUserPoolInfo(
     userAddress: string,
-    lpAddress: string
+    lpAddress: string,
   ): Promise<UserPoolInfo> {
     return AuxContract.getUserPoolInfo(userAddress, lpAddress);
   }
 
   export async function getUserPoolInfoAllPools(
-    userAddress: string
+    userAddress: string,
   ): Promise<UserPoolInfo[]> {
     const promises = allLiquidityPools.map(({ lpAddress }) =>
-      AuxContract.getUserPoolInfo(userAddress, lpAddress)
+      AuxContract.getUserPoolInfo(userAddress, lpAddress),
     );
     return await Promise.all(promises);
   }
 
   export async function getOptionsWithPositionOfUser(
-    userAddress: string
+    userAddress: string,
   ): Promise<OptionWithUserPosition[]> {
     const res = (await contract().get_option_with_position_of_user(
-      userAddress
+      userAddress,
     )) as OptionWithUserPositionResponse[];
-
-    console.log(res);
 
     return res.map(
       (o) =>
         new OptionWithUserPosition(
           o.option,
           o.value_of_position,
-          o.position_size
-        )
+          o.position_size,
+        ),
     );
   }
 }

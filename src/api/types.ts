@@ -50,6 +50,10 @@ export type PaginatedResponse<T> = {
   has_next: boolean;
 };
 
+export type DataResponse<T> = {
+  data: T;
+};
+
 export type TradeEventResponse = {
   block_number: number;
   caller: string;
