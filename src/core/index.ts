@@ -14,7 +14,12 @@ import {
   TokenPair,
 } from "./liquidityPool";
 import { allTokens, Token, tokenByAddress, tokenBySymbol } from "./token";
-import { Option, OptionWithPremia, OptionWithUserPosition } from "./option";
+import {
+  NonSettledOption,
+  Option,
+  OptionWithPremia,
+  OptionWithUserPosition,
+} from "./option";
 import { CarmineAmm } from "./CarmineAmm";
 import {
   BTC_ADDRESS,
@@ -51,6 +56,7 @@ export {
   UserPoolInfo,
   OptionWithPremia,
   OptionWithUserPosition,
+  NonSettledOption,
   CarmineAmm,
   Cubit,
   fixedToNumber,
