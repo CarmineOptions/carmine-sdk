@@ -265,6 +265,7 @@ export class OptionWithUserPosition extends Option {
 
 export class NonSettledOption extends Option {
   public readonly optionAddress: string;
+  public size: bigint | undefined;
 
   constructor(input: OptionDescriptorWithLpAddress) {
     const pool = liquidityPoolByLpAddress(input.lp_address).unwrap();
@@ -283,19 +284,31 @@ export class NonSettledOption extends Option {
     this.optionAddress = input.option_address;
   }
 
-  async tradeSettle(user: string): Promise<Call> {
+  async fetchSize(user: string): Promise<bigint> {
     const contract = new Contract({
       abi: erc20Abi,
       address: this.optionAddress,
       providerOrAccount: getProvider(),
     }).typedv2(erc20Abi);
     const balance = (await contract.balance_of(user)) as bigint;
+    this.size = balance;
+
+    return balance;
+  }
+
+  tradeSettle(): Call {
     return {
       entrypoint: "trade_settle",
       contractAddress: AMM_ADDRESS,
-      calldata: this.tradeSettleCalldata(
-        this.underlying.toHumanReadable(balance),
-      ),
+      calldata: [
+        this.optionType.toString(),
+        ...this.strikePrice.asArray,
+        this.maturity.toString(),
+        this.optionSide.toString(),
+        (this.size as bigint).toString(10),
+        this.quote.address,
+        this.base.address,
+      ],
     };
   }
 }
