@@ -44,8 +44,7 @@ export const EKUBO_USDC_CALL_ADDRESS =
 export const EKUBO_USDC_PUT_ADDRESS =
   "0xe12a16c964dc68850c1f6cbea9062c36bed7676265eec7f563c728c53e536f";
 
-// export const RPC_URL_DEFAULT = "https://starknet.api.onfinality.io/public";
-export const RPC_URL_DEFAULT = "http://51.195.57.196:6060";
+export const RPC_URL_DEFAULT = "https://starknet.api.onfinality.io/public";
 export const API_URL_DEFAULT = "https://backend.carmine.finance";
 
 export const OptionSideLong = 0;
